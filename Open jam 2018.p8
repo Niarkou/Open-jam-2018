@@ -7,11 +7,11 @@ __lua__
 --
 
 function _init()
-    player = {x = 64, y = 64, spd = 1, dir = false}
+    player = {x = 64, y = 64, spd = 0.5, dir = false, jump = 0, grounded = false}
     gravity_speed = 1
 end
 
-function _update()
+function _update60()
     update_player()
 end
 
@@ -36,11 +36,17 @@ function update_player()
         new_x += player.spd
     end
 
-    if btn(2) then
+    if player.jump > 0 then
         new_y -= player.spd
-    elseif btn(3) then
-        new_y += player.spd
-    end 
+        player.jump -= 1
+    end
+
+    if btnp(2) and grounded == true then
+        player.jump = 20
+     --elseif btn(3) then
+         --new_y += player.spd
+    end
+    
     if not btn(2) then
         new_y += gravity_speed
     end
