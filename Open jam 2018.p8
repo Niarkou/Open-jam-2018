@@ -45,10 +45,10 @@ function update_player()
         new_y += 1
     end
     -- test collisions
-    if not wall_area(new_x, player.y, 4, 4) then
+    if not wall_area(new_x, player.y, 2, 2) then
         player.x = new_x -- new_x is OK!
     end
-    if not wall_area(player.x, new_y, 4, 4) then
+    if not wall_area(player.x, new_y, 2, 2) then
         player.y = new_y -- new_y is OK!
     end
 end
@@ -77,7 +77,7 @@ function draw_world()
 end
 
 function draw_player()
-    spr(1, player.x, player.y)
+    spr(1, player.x - 4, player.y - 6)
 end
 __gfx__
 00000000888888887777777777770000000077770000000000000000777777770000000000007777777700007777000000007777777777777777777777770000
