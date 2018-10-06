@@ -18,6 +18,7 @@ end
 function _draw()
     draw_world()
     draw_player()
+    draw_debug()
 end
 
 --
@@ -86,6 +87,13 @@ end
 
 function draw_player()
     spr(18, player.x - 8, player.y - 12, 2, 2, player.dir)
+end
+
+function draw_debug()
+    print("player.x  "..player.x, 5, 5, 6)
+    print("player.y  "..player.y, 5, 12, 6)
+    print("player.jump  "..player.jump, 5, 19, 6)
+    print("player.grounded  "..tostr(player.grounded), 5, 26, 6)
 end
 __gfx__
 000000000000330077777777777c00000000c777000000000000000077777777000000000000c777777c0000777c00000000c7777777777777777777777c0000
