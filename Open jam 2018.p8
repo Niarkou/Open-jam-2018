@@ -8,6 +8,7 @@ __lua__
 
 function _init()
     player = {x = 64, y = 64, spd = 1, dir = false}
+    gravity_speed = 1
 end
 
 function _update()
@@ -39,6 +40,9 @@ function update_player()
         new_y -= player.spd
     elseif btn(3) then
         new_y += player.spd
+    end 
+    if not btn(2) then
+        new_y += gravity_speed
     end
     -- test collisions
     if not wall_area(new_x, player.y, 2, 2) then
