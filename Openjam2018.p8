@@ -3,6 +3,15 @@ version 16
 __lua__
 
 --
+-- usefull functions
+--
+
+function jump()
+    if btn(2) or btn(5) then
+        return true end
+end
+
+--
 -- standard pico-8 workflow
 --
 
@@ -42,7 +51,7 @@ function update_player()
         player.jump -= 1
     end
 
-    if btnp(5) and player.grounded == true then
+    if jump() and player.grounded == true then
         player.jump = 20
      --elseif btn(3) then
          --new_y += player.spd
@@ -57,7 +66,7 @@ function update_player()
     if not wall_area(player.x, new_y, 4, 4) then
         player.grounded = false
         player.y = new_y -- new_y is ok!
-    elseif not btn(5) then player.grounded = true
+    elseif not btn(2) and not btn(5) then player.grounded = true
     end
 end
 
