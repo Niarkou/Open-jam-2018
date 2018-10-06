@@ -59,8 +59,8 @@ function wall(x,y)
 end
 
 function wall_area(x,y,w,h)
-    return wall(x-w,y-h) or wall(x+w,y-h) or
-           wall(x-w,y+h) or wall(x+w,y+h)
+    return wall(x-w,y-h) or wall(x-1+w,y-h) or
+           wall(x-w,y-1+h) or wall(x-1+w,y-1+h)
 end
 
 --
