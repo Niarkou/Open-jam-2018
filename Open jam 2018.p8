@@ -33,16 +33,12 @@ function update_player()
     elseif btn(1) then
         player.dir = false
         new_x += player.spd
-    elseif btn(2) then
+    end
+
+    if btn(2) then
         new_y -= player.spd
     elseif btn(3) then
         new_y += player.spd
-    end
-    -- test: up/down
-    if btn(2) then
-        new_y -= 1
-    elseif btn(3) then
-        new_y += 1
     end
     -- test collisions
     if not wall_area(new_x, player.y, 4, 4) then
