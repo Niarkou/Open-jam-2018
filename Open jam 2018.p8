@@ -32,6 +32,12 @@ function update_player()
     elseif btn(1) then
         new_x += 1
     end
+    -- test: up/down
+    if btn(2) then
+        new_y -= 1
+    elseif btn(3) then
+        new_y += 1
+    end
     -- test collisions
     if not wall_area(new_x, player.y, 4, 4) then
         player.x = new_x -- new_x is OK!
