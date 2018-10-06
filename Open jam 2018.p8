@@ -24,11 +24,35 @@ end
 --
 
 function update_player()
+    local new_x = player.x
+    local new_y = player.y
+    -- apply controls
     if btn(0) then
-        player.x -= 1
+        new_x -= 1
     elseif btn(1) then
-        player.x += 1
+        new_x += 1
     end
+    -- test collisions
+    if not wall_area(new_x, player.y, 4, 4) then
+        player.x = new_x -- new_x is OK!
+    end
+    if not wall_area(player.x, new_y, 4, 4) then
+        player.y = new_y -- new_y is OK!
+    end
+end
+
+function wall(x,y)
+    local m = mget(x/8,y/8)
+    if ((x%8<4) and (y%8<4)) return fget(m,0)
+    if ((x%8>=4) and (y%8<4)) return fget(m,1)
+    if ((x%8<4) and (y%8>=4)) return fget(m,2)
+    if ((x%8>=4) and (y%8>=4)) return fget(m,3)
+    return true
+end
+
+function wall_area(x,y,w,h)
+    return wall(x-w,y-h) or wall(x+w,y-h) or
+           wall(x-w,y+h) or wall(x+w,y+h)
 end
 
 --
