@@ -53,10 +53,12 @@ function update_player()
         new_y += gravity_speed
     end
 
-    if jump() and player.grounded == true then
-        player.jump = 20
-     --elseif btn(3) then
-         --new_y += player.spd
+    if jump() then
+        if player.grounded then
+            player.jump = 20 -- start jumping
+        end
+    else
+        player.jump = 0 -- stop jumping
     end
 
     -- test collisions
