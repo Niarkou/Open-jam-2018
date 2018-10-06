@@ -42,13 +42,13 @@ function update_player()
         player.jump -= 1
     end
 
-    if btnp(❎) and grounded == true then
+    if btnp(5) and grounded == true then
         player.jump = 20
      --elseif btn(3) then
          --new_y += player.spd
     end
     
-    if not btn(❎) then
+    if not btn(5) then
         new_y += gravity_speed
     end
     -- test collisions
@@ -56,7 +56,9 @@ function update_player()
         player.x = new_x -- new_x is ok!
     end
     if not wall_area(player.x, new_y, 4, 4) then
+        player.grounded = false
         player.y = new_y -- new_y is ok!
+    else player.grounded = true
     end
 end
 
