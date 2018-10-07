@@ -17,8 +17,8 @@ end
 
 function _init()
     player = {
-        x = 64, y = 64,
-        spd = 0.5,
+        x = 64, y = 40,
+        spd = 1.0,
         dir = false,
         grounded = false,
         jump = 0, fall = 0,
@@ -121,7 +121,12 @@ function draw_debug()
     print("player.xy "..player.x.." "..player.y, 5, 5, 6)
     print("jump "..player.jump.."  fall "..player.fall, 5, 12, 6)
     print("grounded "..tostr(player.grounded), 5, 19, 6)
+    -- debug collisions
+    fillp(0xa5a5.8)
+    rect(player.x - 4, player.y - 4, player.x + 3, player.y + 3, 8)
+    fillp()
 end
+
 __gfx__
 000000000000330077777777777c00000000c7770000000000000000cccccccc000000000000c777777c0000777c00000000c7777777777777777777777c0000
 000000000003b63077777777777c00000000c777000000000000000077777777000000000000c777777c0000777c00000000c7777777777777777777777c0000
