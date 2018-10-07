@@ -85,6 +85,7 @@ end
 function _init()
     state = "menu"
     score = 0
+    fish = 0
     add_player(64, 150)
     menu = {
         doordw = 128,
@@ -119,6 +120,7 @@ function _draw()
         draw_world()
         draw_player()
         draw_debug()
+        draw_ui()
     end
 end 
 
@@ -356,7 +358,12 @@ end
 function draw_world()
     cls(0)
     map(0, 0, 0, 0, 16, 16)
-    csprint(tostr(score), 5, 9, 13)
+end
+
+function draw_ui()
+    csprint(tostr(score), 3, 9, 13)
+    cosprint(tostr(fish), 19, 4, 6, 9)
+    spr(25, 7, 3)
 end
 
 function draw_player()
