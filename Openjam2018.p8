@@ -66,28 +66,28 @@ function update_player()
         new_x += player.spd
     end
 
-    if ladder_area_down(player.x, new_y, 4, 4) or ladder_area_up(player.x, new_y, 4, 4) then
+    if ladder_area_down(player.x, new_y, 4, 4) or
+       ladder_area_up(player.x, new_y, 4, 4) then
         player.ladder = true
-    else player.ladder = false
+    else
+        player.ladder = false
     end
 
-    if player.ladder == true then
-
+    if player.ladder then
+        --
     elseif player.jump > 0 then
-            new_y -= mid(1, player.jump / 5, 2) * jump_speed
-            player.jump -= 1
+        new_y -= mid(1, player.jump / 5, 2) * jump_speed
+        player.jump -= 1
     else
-            new_y += mid(1, player.fall / 5, 2) * fall_speed
-            player.fall += 1
+        new_y += mid(1, player.fall / 5, 2) * fall_speed
+        player.fall += 1
     end
 
     if jump() then
         if player.ladder then
             new_y -= player.climbspd
-        else
-            if player.grounded then
-                player.jump = 20 -- start jumping
-            end
+        elseif player.grounded then
+            player.jump = 20 -- start jumping
         end
     else
         player.jump = 0 -- stop jumping
@@ -95,10 +95,11 @@ function update_player()
 
     if btn(3) then
         player.spr = 26
-        if ladder_area_down(player.x, new_y, 4) then
+        if ladder_area_down(player.x, new_y + player.climbspd, 4) then
             new_y += player.climbspd
         end
-    else player.spr = 18
+    else
+        player.spr = 18
     end
 
     -- test collisions
@@ -124,10 +125,7 @@ end
 
 function wall(x,y)
     local m = mget(x/8, y/8)
-    if not fget(m, 4) then
-        return wallandladder(x, y)
-    else return false
-    end
+    return not fget(m, 4) and wall_or_ladder(x, y)
 end
 
 function wall_area(x,y,w,h)
@@ -137,7 +135,7 @@ function wall_area(x,y,w,h)
            wall(x,y-1+h) or wall(x,y-h)
 end
 
-function wallandladder(x,y)
+function wall_or_ladder(x,y)
     local m = mget(x/8,y/8)
     if ((x%8<4) and (y%8<4)) return fget(m,0)
     if ((x%8>=4) and (y%8<4)) return fget(m,1)
@@ -146,19 +144,16 @@ function wallandladder(x,y)
     return true
 end
 
-function wallandladder_area(x,y,w,h)
-    return wallandladder(x-w,y-h) or wallandladder(x-1+w,y-h) or
-           wallandladder(x-w,y-1+h) or wallandladder(x-1+w,y-1+h) or
-           wallandladder(x-w,y) or wallandladder(x-1+w,y) or
-           wallandladder(x,y-1+h) or wallandladder(x,y-h)
+function wall_or_ladder_area(x,y,w,h)
+    return wall_or_ladder(x-w,y-h) or wall_or_ladder(x-1+w,y-h) or
+           wall_or_ladder(x-w,y-1+h) or wall_or_ladder(x-1+w,y-1+h) or
+           wall_or_ladder(x-w,y) or wall_or_ladder(x-1+w,y) or
+           wall_or_ladder(x,y-1+h) or wall_or_ladder(x,y-h)
 end
 
 function ladder(x,y)
     local m = mget(x/8, y/8)
-    if not fget(m, 4) then return false
-    elseif wallandladder(x,y) then return true
-    else return false
-    end
+    return fget(m, 4) and wall_or_ladder(x,y)
 end
 
 function ladder_area_up(x,y,h)
@@ -190,8 +185,7 @@ end
 function draw_debug()
     print("player.xy "..player.x.." "..player.y, 5, 5, 6)
     print("jump "..player.jump.."  fall "..player.fall, 5, 12, 6)
-    print("grounded "..tostr(player.grounded), 5, 19, 6)
-    print("player.ladder  "..tostr(player.ladder), 5, 26, 6)
+    print("grounded "..(player.grounded and 1 or 0).."  ladder "..(player.ladder and 1 or 0), 5, 19, 6)
     -- debug collisions
     fillp(0xa5a5.8)
     rect(player.x - 4, player.y - 4, player.x + 3, player.y + 3, 8)
