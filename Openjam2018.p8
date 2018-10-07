@@ -16,8 +16,9 @@ end
 --
 
 function _init()
-    player = {x = 64, y = 64, spd = 0.5, dir = false, jump = 0, grounded = false}
-    gravity_speed = 1
+    player = {x = 64, y = 64, spd = 0.5, dir = false, jump = 0, fall = 0, grounded = false}
+    jump_speed = 1
+    fall_speed = 1
 end
 
 function _update60()
@@ -47,10 +48,11 @@ function update_player()
     end
 
     if player.jump > 0 then
-        new_y -= (player.jump / 5) * player.spd
+        new_y -= mid(1, player.jump / 5, 2) * jump_speed
         player.jump -= 1
     else
-        new_y += gravity_speed
+        new_y += mid(1, player.fall / 5, 2) * fall_speed
+        player.fall += 1
     end
 
     if jump() then
@@ -68,7 +70,9 @@ function update_player()
     if not wall_area(player.x, new_y, 4, 4) then
         player.grounded = false
         player.y = new_y -- new_y is ok!
-    elseif not jump() then player.grounded = true
+    elseif not jump() then
+        player.grounded = true
+        player.fall = 0
     end
 end
 
@@ -102,10 +106,9 @@ function draw_player()
 end
 
 function draw_debug()
-    print("player.x  "..player.x, 5, 5, 6)
-    print("player.y  "..player.y, 5, 12, 6)
-    print("player.jump  "..player.jump, 5, 19, 6)
-    print("player.grounded  "..tostr(player.grounded), 5, 26, 6)
+    print("player.xy "..player.x.." "..player.y, 5, 5, 6)
+    print("jump "..player.jump.."  fall "..player.fall, 5, 12, 6)
+    print("grounded "..tostr(player.grounded), 5, 19, 6)
 end
 __gfx__
 000000000000330077777777777c00000000c7770000000000000000cccccccc000000000000c777777c0000777c00000000c7777777777777777777777c0000
