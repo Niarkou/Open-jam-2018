@@ -16,8 +16,16 @@ end
 --
 
 function _init()
-    player = {x = 64, y = 64, spd = 0.5, dir = false, jump = 0, grounded = false, spr = 18}
-    gravity_speed = 1
+    player = {
+        x = 64, y = 40,
+        spd = 1.0,
+        dir = false,
+        grounded = false,
+        jump = 0, fall = 0,
+        spr = 18
+    }
+    jump_speed = 1
+    fall_speed = 1
 end
 
 function _update60()
@@ -28,6 +36,16 @@ function _draw()
     draw_world()
     draw_player()
     draw_debug()
+end
+
+--
+-- menu
+--
+
+function update_menu()
+end
+
+function draw_menu()
 end
 
 --
@@ -47,10 +65,11 @@ function update_player()
     end
 
     if player.jump > 0 then
-        new_y -= (player.jump / 5) * player.spd
+        new_y -= mid(1, player.jump / 5, 2) * jump_speed
         player.jump -= 1
     else
-        new_y += gravity_speed
+        new_y += mid(1, player.fall / 5, 2) * fall_speed
+        player.fall += 1
     end
 
     if jump() then
@@ -79,6 +98,7 @@ function update_player()
     else
         if not jump() then 
             player.grounded = true 
+            player.fall = 0
         end
         if btn(3) and ladder_area_down(player.x, new_y, 4) then
             player.y = new_y
@@ -134,11 +154,16 @@ function draw_player()
 end
 
 function draw_debug()
-    print("player.x  "..player.x, 5, 5, 6)
-    print("player.y  "..player.y, 5, 12, 6)
-    print("player.jump  "..player.jump, 5, 19, 6)
+    print("player.xy "..player.x.." "..player.y, 5, 5, 6)
+    print("jump "..player.jump.."  fall "..player.fall, 5, 12, 6)
+    print("grounded "..tostr(player.grounded), 5, 19, 6)
     print("ladder_down  "..tostr(ladder_area_down(player.x, player.y, 4)), 5, 26, 6)
+    -- debug collisions
+    fillp(0xa5a5.8)
+    rect(player.x - 4, player.y - 4, player.x + 3, player.y + 3, 8)
+    fillp()
 end
+
 __gfx__
 000000000000330077777777777c00000000c7770000000000000000cccccccc000000000000c777777c0000777c00000000c7777777777777777777777c0000
 000000000003b63077777777777c00000000c777000000000000000077777777000000000000c777777c0000777c00000000c7777777777777777777777c0000
