@@ -177,29 +177,37 @@ function update_player()
         player.spr = 18
     end
 
-    -- test X collisions
+    -- test x collisions
     if not wall_area(new_x, player.y, 4, 4) or
        ladder_area_side(new_x, new_y, 4, 4) then
         player.x = new_x -- new_x is ok!
     end
 
-    -- test Y collisions
-    if not wall_area(player.x, new_y, 4, 4) then
-        -- nothing is stopping us
-        player.grounded = false
-        player.y = new_y -- new_y is ok!
-    elseif new_y > player.y then
-        -- trying to go down
-        if ladder_area_down(player.x, new_y, 4) then
+    -- test y collisions
+    if new_y > player.y then
+        if wall_area(player.x, new_y, 4, 4) then
+            -- blocked by a wall! do nothing
+            player.grounded = true
+            player.fall = 0
+        elseif ladder_area_down(player.x, new_y, 4) then
+            -- climbing down the ladder
             player.y = new_y
         else
-            player.grounded = true 
-            player.fall = 0
+            -- nothing is stopping us!
+            player.grounded = false
+            player.y = new_y
         end
     elseif new_y < player.y then
-        -- trying to go up
-        if ladder_area_up(player.x, new_y, 4) then
-             player.y = new_y
+        if wall_area(player.x, new_y, 4, 4) then
+            -- blocked by a wall! do nothing
+            player.jump = 0
+        elseif ladder_area_up(player.x, new_y, 4) then
+            -- climbing up the ladder
+            player.y = new_y
+        else
+            -- nothing is stopping us!
+            player.grounded = false
+            player.y = new_y
         end
     end
 end
