@@ -22,6 +22,7 @@ function add_player(x, y)
         ladder = false,
         jump = 0, fall = 0,
         spr = 18,
+        particles = {},
     }
 end
 
@@ -221,6 +222,21 @@ function update_player()
         player.spr = 18
     end
 
+    foreach (player.particles, function(p)
+        p.x += rnd(2) - 1
+        p.y += rnd(1) - 0.5
+        p.age += 1
+        if p.age > 10 then
+            del(player.particles, p)
+        end
+    end)
+
+    if new_x != player.x or new_y != player.y then
+        if rnd() > 0.5 then
+            add(player.particles, { x = new_x, y = new_y, age = 0 })
+        end
+    end
+
     -- test x collisions
     if not wall_area(new_x, player.y, 4, 4) or
        ladder_area_side(new_x, new_y, 4, 4) then
@@ -338,6 +354,9 @@ function draw_world()
 end
 
 function draw_player()
+    foreach (player.particles, function(p)
+        circfill(p.x, p.y, p.age < 5 and 0.5 or 1, p.age < 5 and 11 or 3)
+    end)
     spr(player.spr, player.x - 8, player.y - 12, 2, 2, player.dir)
 end
 
