@@ -22,7 +22,8 @@ function _init()
         dir = false,
         grounded = false,
         jump = 0, fall = 0,
-        spr = 18
+        spr = 18,
+        climbspd = 0.5
     }
     jump_speed = 1
     fall_speed = 1
@@ -73,23 +74,27 @@ function update_player()
     end
 
     if jump() then
-        if player.grounded then
-            player.jump = 20 -- start jumping
+        if ladder_area_up(player.x, new_y, 4) then
+            player.jump = player.climbspd
+        else
+            if player.grounded then
+                player.jump = 20 -- start jumping
+            end
         end
     else
         player.jump = 0 -- stop jumping
     end
 
     if btn(3) then
-        new_y -= player.spd
-        if not ladder_area_down(player.x, new_y, 4) then
         player.spr = 26
+        if ladder_area_down(player.x, new_y, 4) then
+            new_y += player.climbspd / 10
         end
     else player.spr = 18
     end
 
     -- test collisions
-    if not wall_area(new_x, player.y, 4, 4) or ladder_area_notdown(new_x, new_y, 4, 4) then
+    if not wall_area(new_x, player.y, 4, 4) or ladder_area_side(new_x, new_y, 4, 4) then
         player.x = new_x -- new_x is ok!
     end
     if not wall_area(player.x, new_y, 4, 4) then
@@ -99,6 +104,9 @@ function update_player()
         if not jump() then 
             player.grounded = true 
             player.fall = 0
+        end
+        if jump() then
+            player.y = new_y
         end
         if btn(3) and ladder_area_down(player.x, new_y, 4) then
             player.y = new_y
@@ -130,14 +138,17 @@ function ladder(x,y)
     end
 end
 
+function ladder_area_up(x,y,h)
+    return ladder(x,y-h)
+end
+
 function ladder_area_down(x,y,h)
     return ladder(x,y+h)
 end
 
-function ladder_area_notdown(x,y,w,h)
+function ladder_area_side(x,y,w,h)
     return ladder(x-w,y-h) or ladder(x-1+w,y-h) or
-           ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h) or
-           ladder(x-w,y-h) or ladder(x+w,y-h)
+           ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
 
 --
