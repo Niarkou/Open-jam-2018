@@ -48,6 +48,14 @@ function csprint(text, y, height, color)
     cosprint(text, x, y, height, color)
 end
 
+-- cool rectfill (centered, outlined)
+
+function crectfill(y0, y1, w, color1, color2)
+    local x0 = 64 - ((w / 2))
+    local x1 = 64 + ((w / 2) - 1)
+    rectfill(x0, y0, x1, y1, color1)
+    rect(x0, y0, x1, y1, color2)
+end
 --
 -- standard pico-8 workflow
 --
@@ -90,8 +98,8 @@ function _draw()
         draw_menu()
     elseif state == "play" then
         draw_world()
-        draw_debug()
         draw_player()
+        draw_debug()
     end
 end 
 
@@ -240,10 +248,11 @@ end
 function draw_menu()
     palt(0, false)
     sspr(96, 8, 16, 16, menu.doorx, 0, menu.doordw, 128)
-    palt(0,true)
     if menu.doordw > 126 then
+        crectfill(55, 72, 35, 6, 0)
         csprint("play", 60, 9, 13)
     end
+    palt(0,true)
 end
 
 function draw_world()
