@@ -57,6 +57,7 @@ function _init()
     menu = {
         doordw = 128,
         doorx = 0,
+        doorspd = 1,
         opening = false
     }
 
@@ -70,6 +71,7 @@ function _init()
         climbspd = 0.2,
         ladder = false
     }
+
     jump_speed = 1
     fall_speed = 1
 end
@@ -106,8 +108,8 @@ function open_door()
         opening = true
     end
     if opening == true then
-        menu.doordw -= 1
-        menu.doorx += 1
+        menu.doordw -= mid(1, menu.doordw / 5, 2) * menu.doorspd
+        menu.doorx += mid(1, menu.doordw / 5, 2) * menu.doorspd
     end
     if menu.doordw == 0 then
         opening = false
@@ -248,7 +250,7 @@ function draw_menu()
     sspr(96, 8, 16, 16, menu.doorx, 0, menu.doordw, 128)
     palt(0,true)
     if menu.doordw > 126 then
-        csprint("play", 30, 9, 13)
+        csprint("play", 60, 9, 13)
     end
 end
 
