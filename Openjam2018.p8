@@ -64,18 +64,27 @@ end
 
 -- cool rectfill (centered, outlined)
 
-function crectfill(y0, y1, w, color1, color2)
+function corectfill(y0, y1, w, color1, color2)
     local x0 = 64 - ((w / 2))
     local x1 = 64 + ((w / 2) - 1)
     rectfill(x0, y0, x1, y1, color1)
     rect(x0, y0, x1, y1, color2)
 end
+
+-- cool rectfill (outlined)
+
+function orectfill(x0, y0, x1, y1, color1, color2)
+    rectfill(x0, y0, x1, y1, color1)
+    rect(x0, y0, x1, y1, color2)
+end
+
 --
 -- standard pico-8 workflow
 --
 
 function _init()
     state = "menu"
+    score = 0
     add_player(64, 150)
     menu = {
         doordw = 128,
@@ -329,7 +338,7 @@ function draw_menu()
 
     if menu.doordw > 126 then
         if not menu.scores then
-            crectfill(menu.rect_y0, menu.rect_y1, 35, 6, 0)
+            corectfill(menu.rect_y0, menu.rect_y1, 35, 6, 0)
             csprint("joe       ", 32, 12, 11)
             csprint("    pickle", 32, 12, 9)
             csprint("play", 60, 9, 13)
@@ -347,6 +356,7 @@ end
 function draw_world()
     cls(0)
     map(0, 0, 0, 0, 16, 16)
+    csprint(tostr(score), 114, 9, 13)
 end
 
 function draw_player()
