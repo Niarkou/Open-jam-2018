@@ -123,12 +123,11 @@ function update_player()
 end
 
 function wall(x,y)
-    local m = mget(x/8,y/8)
-    if ((x%8<4) and (y%8<4)) return fget(m,0)
-    if ((x%8>=4) and (y%8<4)) return fget(m,1)
-    if ((x%8<4) and (y%8>=4)) return fget(m,2)
-    if ((x%8>=4) and (y%8>=4)) return fget(m,3)
-    return true
+    local m = mget(x/8, y/8)
+    if not fget(m, 4) then
+        return wallandladder(x, y)
+    else return false
+    end
 end
 
 function wall_area(x,y,w,h)
@@ -138,10 +137,26 @@ function wall_area(x,y,w,h)
            wall(x,y-1+h) or wall(x,y-h)
 end
 
+function wallandladder(x,y)
+    local m = mget(x/8,y/8)
+    if ((x%8<4) and (y%8<4)) return fget(m,0)
+    if ((x%8>=4) and (y%8<4)) return fget(m,1)
+    if ((x%8<4) and (y%8>=4)) return fget(m,2)
+    if ((x%8>=4) and (y%8>=4)) return fget(m,3)
+    return true
+end
+
+function wallandladder_area(x,y,w,h)
+    return wallandladder(x-w,y-h) or wallandladder(x-1+w,y-h) or
+           wallandladder(x-w,y-1+h) or wallandladder(x-1+w,y-1+h) or
+           wallandladder(x-w,y) or wallandladder(x-1+w,y) or
+           wallandladder(x,y-1+h) or wallandladder(x,y-h)
+end
+
 function ladder(x,y)
     local m = mget(x/8, y/8)
     if not fget(m, 4) then return false
-    elseif wall(x,y) then return true
+    elseif wallandladder(x,y) then return true
     else return false
     end
 end
