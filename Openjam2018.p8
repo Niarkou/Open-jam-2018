@@ -66,7 +66,10 @@ function _init()
         doordw = 128,
         doorx = 0,
         doorspd = 1,
-        opening = false
+        opening = false,
+        rectpos = 1,
+        rect_y0 = 55,
+        rect_y1 = 72
     }
 
     player = {
@@ -110,6 +113,8 @@ end
 
 function update_menu()
     open_door()
+    choose_menu()
+    rect_menu()
 end
 
 function open_door()
@@ -123,6 +128,22 @@ function open_door()
     if menu.doordw < 2 then
         opening = false
         state = "play"
+    end
+end
+
+function rect_menu()
+    if menu.rectpos == 1 then
+        menu.rect_y0 = 55
+        menu.rect_y1 = 72
+    elseif menu.rectpos == 2 then
+        menu.rect_y0 = 73
+        menu.rect_y1 = 90
+    end
+end
+
+function choose_menu()
+    if btnp(3) and menu.rectpos < 2 then
+        menu.rectpos += 1
     end
 end
 
@@ -282,8 +303,9 @@ function draw_menu()
     palt(0, false)
     sspr(96, 8, 16, 16, menu.doorx, 0, menu.doordw, 128)
     if menu.doordw > 126 then
-        crectfill(55, 72, 35, 6, 0)
+        crectfill(menu.rect_y0, menu.rect_y1, 35, 6, 0)
         csprint("play", 60, 9, 13)
+        csprint("best", 78, 9, 13)
     end
     palt(0,true)
 end
