@@ -23,7 +23,8 @@ function _init()
         grounded = false,
         jump = 0, fall = 0,
         spr = 18,
-        climbspd = 0.5
+        climbspd = 0.2,
+        ladder = false
     }
     jump_speed = 1
     fall_speed = 1
@@ -65,17 +66,24 @@ function update_player()
         new_x += player.spd
     end
 
-    if player.jump > 0 then
-        new_y -= mid(1, player.jump / 5, 2) * jump_speed
-        player.jump -= 1
+    if ladder_area_down(player.x, new_y, 4, 4) or ladder_area_up(player.x, new_y, 4, 4) then
+        player.ladder = true
+    else player.ladder = false
+    end
+
+    if player.ladder == true then
+
+    elseif player.jump > 0 then
+            new_y -= mid(1, player.jump / 5, 2) * jump_speed
+            player.jump -= 1
     else
-        new_y += mid(1, player.fall / 5, 2) * fall_speed
-        player.fall += 1
+            new_y += mid(1, player.fall / 5, 2) * fall_speed
+            player.fall += 1
     end
 
     if jump() then
-        if ladder_area_up(player.x, new_y, 4) then
-            player.jump = player.climbspd
+        if player.ladder then
+            new_y -= player.climbspd
         else
             if player.grounded then
                 player.jump = 20 -- start jumping
@@ -88,7 +96,7 @@ function update_player()
     if btn(3) then
         player.spr = 26
         if ladder_area_down(player.x, new_y, 4) then
-            new_y += player.climbspd / 10
+            new_y += player.climbspd
         end
     else player.spr = 18
     end
@@ -108,7 +116,7 @@ function update_player()
         if jump() then
             player.y = new_y
         end
-        if btn(3) and ladder_area_down(player.x, new_y, 4) then
+        if btn(3) and player.ladder == true then
             player.y = new_y
         end
     end
@@ -168,7 +176,7 @@ function draw_debug()
     print("player.xy "..player.x.." "..player.y, 5, 5, 6)
     print("jump "..player.jump.."  fall "..player.fall, 5, 12, 6)
     print("grounded "..tostr(player.grounded), 5, 19, 6)
-    print("ladder_down  "..tostr(ladder_area_down(player.x, player.y, 4)), 5, 26, 6)
+    print("player.ladder  "..tostr(player.ladder), 5, 26, 6)
     -- debug collisions
     fillp(0xa5a5.8)
     rect(player.x - 4, player.y - 4, player.x + 3, player.y + 3, 8)
