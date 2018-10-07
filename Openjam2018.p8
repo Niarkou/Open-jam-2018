@@ -96,7 +96,7 @@ function update_player()
         player.grounded = false
         player.y = new_y -- new_y is ok!
     else
-        if not jump() then 
+        if new_y >= player.y and not jump() then
             player.grounded = true 
             player.fall = 0
         end
