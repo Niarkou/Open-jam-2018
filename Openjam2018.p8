@@ -78,7 +78,6 @@ function _init()
         climbspd = 0.5,
         dir = false,
         grounded = false,
-        ladder = false,
         jump = 0, fall = 0,
         spr = 18,
         particles = {},
@@ -151,53 +150,75 @@ end
 -- play
 --
 
+function move_player_x(dx)
+    if not wall_area(player.x + dx, player.y, 4, 4) then
+        player.x += dx
+    end
+end
+
+function move_player_y(dy)
+    while wall_area(player.x, player.y + dy, 4, 4) do
+        dy *= 7 / 8
+        if abs(dy) < 0.00625 then return end
+    end
+    player.y += dy
+end
+
 function update_player()
-    local new_x = player.x
-    local new_y = player.y
-    -- apply controls
+    local old_x, old_y = player.x, player.y
+
+    -- check x movement (easy)
     if btn(0) then
         player.dir = true
-        new_x -= player.spd
+        move_player_x(-player.spd)
     elseif btn(1) then
         player.dir = false
-        new_x += player.spd
+        move_player_x(player.spd)
     end
 
-    if ladder_area_down(player.x, new_y, 4, 4) or
-       ladder_area_up(player.x, new_y, 4, 4) then
-        player.ladder = true
-    else
-        player.ladder = false
+    -- check for ladders and ground below
+    local ladder = ladder_area(player.x, player.y, 0, 4)
+    local ladder_below = ladder_area_down(player.x, player.y + 0.0125, 4)
+    local ground_below = wall_area(player.x, player.y + 0.0125, 4, 4)
+    local grounded = ladder or ladder_below or ground_below
+
+    -- if inside a ladder, stop jumping
+    if ladder then
+        player.jump = 0
     end
 
-    if player.ladder then
-        --
-    elseif player.jump > 0 then
-        new_y -= mid(1, player.jump / 5, 2) * jump_speed
-        player.jump -= 1
-    else
-        new_y += mid(1, player.fall / 5, 2) * fall_speed
-        player.fall += 1
+    -- if grounded, stop falling
+    if grounded then
+        player.fall = 0
     end
 
     if jump() then
-        if player.ladder then
-            new_y -= player.climbspd
-        elseif player.grounded then
-            player.jump = 20 -- start jumping
+        -- up/jump button
+        if ladder then
+            move_player_y(-player.climbspd)
+        elseif grounded then
+            player.jump = 20
         end
-    else
-        player.jump = 0 -- stop jumping
+    elseif btn(3) then
+        -- down button
+        if ladder_below then
+            move_player_y(player.climbspd)
+        end
     end
 
-    if btn(3) then
-        player.spr = 26
-        if ladder_area_down(player.x, new_y + player.climbspd, 4) then
-            new_y += player.climbspd
+    if player.jump > 0 then
+        move_player_y(-mid(1, player.jump / 5, 2) * jump_speed)
+        player.jump -= 1
+        if old_y == player.y then
+            player.jump = 0 -- bumped into something!
         end
-    else
-        player.spr = 18
+    elseif not grounded then
+        move_player_y(mid(1, player.fall / 5, 2) * fall_speed)
+        player.fall += 1
     end
+
+    player.grounded = grounded
+    player.ladder = ladder
 
     foreach (player.particles, function(p)
         p.x += rnd(2) - 1
@@ -208,44 +229,10 @@ function update_player()
         end
     end)
 
-    if new_x != player.x or new_y != player.y then
-        if rnd() > 0.5 then
-            add(player.particles, { x = new_x, y = new_y, age = 0 })
-        end
-    end
-
-    -- test x collisions
-    if not wall_area(new_x, player.y, 4, 4) or
-       ladder_area_side(new_x, new_y, 4, 4) then
-        player.x = new_x -- new_x is ok!
-    end
-
-    -- test y collisions
-    if new_y > player.y then
-        if wall_area(player.x, new_y, 4, 4) then
-            -- blocked by a wall! do nothing
-            player.grounded = true
-            player.fall = 0
-        elseif ladder_area_down(player.x, new_y, 4) then
-            -- climbing down the ladder
-            player.y = new_y
-        else
-            -- nothing is stopping us!
-            player.grounded = false
-            player.y = new_y
-        end
-    elseif new_y < player.y then
-        if wall_area(player.x, new_y, 4, 4) then
-            -- blocked by a wall! do nothing
-            player.jump = 0
-        elseif ladder_area_up(player.x, new_y, 4) then
-            -- climbing up the ladder
-            player.y = new_y
-        else
-            -- nothing is stopping us!
-            player.grounded = false
-            player.y = new_y
-        end
+    if old_x != player.x or old_y != player.y then
+        add(player.particles, { x = player.x + (rnd(8) - 4) - rnd(2) * (player.x - old_x),
+                                y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
+                                age = -rnd(5) })
     end
 end
 
@@ -287,10 +274,10 @@ function ladder_area_up(x,y,h)
 end
 
 function ladder_area_down(x,y,h)
-    return ladder(x,y+h)
+    return ladder(x,y-1+h)
 end
 
-function ladder_area_side(x,y,w,h)
+function ladder_area(x,y,w,h)
     return ladder(x-w,y-h) or ladder(x-1+w,y-h) or
            ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
