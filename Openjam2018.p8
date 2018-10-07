@@ -341,11 +341,7 @@ function draw_menu()
         camera(0, 14*8)
         draw_player()
         camera()
-
     end
-
-    
-
 end
 
 function draw_world()
