@@ -179,9 +179,6 @@ function update_player()
             player.grounded = true 
             player.fall = 0
         end
-        if jump() then
-            player.y = new_y
-        end
         if btn(3) and player.ladder == true then
             player.y = new_y
         end
