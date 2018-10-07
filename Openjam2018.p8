@@ -111,7 +111,7 @@ function open_door()
         menu.doordw -= mid(1, menu.doordw / 5, 2) * menu.doorspd
         menu.doorx += mid(1, menu.doordw / 5, 2) * menu.doorspd
     end
-    if menu.doordw == 0 then
+    if menu.doordw < 2 then
         opening = false
         state = "play"
     end
