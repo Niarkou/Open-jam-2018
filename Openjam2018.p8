@@ -39,6 +39,16 @@ function _draw()
 end
 
 --
+-- menu
+--
+
+function update_menu()
+end
+
+function draw_menu()
+end
+
+--
 -- play
 --
 
