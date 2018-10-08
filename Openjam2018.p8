@@ -12,20 +12,32 @@ config = {
     pause = {tl = "pause"},
 }
 
-function add_player(x, y)
-    player = {
+function new_entity(x, y)
+    return {
         x = x, y = y,
-        spd = 1.0,
         climbspd = 0.5,
         dir = false,
         grounded = false,
         ladder = false,
         jumped = false,
         jump = 0, fall = 0,
-        spr = 18,
         particles = {},
         shots = {},
     }
+end
+
+function new_player(x, y)
+    local p = new_entity(x, y)
+    p.spd = 1.0
+    p.spr = 18
+    return p
+end
+
+function new_tomato(x, y)
+    local t = new_entity(x, y)
+    t.spd = 0.5
+    t.spr = 30
+    return t
 end
 
 function add_smoke(n)
@@ -110,7 +122,7 @@ function _init()
     hidefish = {}
     smoke = {}
     add_smoke(150)
-    add_player(64, 150)
+    player = new_player(64, 150)
     collectibles()
     menu = {
         doordw = 128,
@@ -134,6 +146,7 @@ function _update60()
         update_player()
     elseif state == "play" then
         update_player()
+        update_tomatoes()
         collect_fish()
         update_smoke()
     end
@@ -147,6 +160,7 @@ function _draw()
         draw_world()
         draw_smoke()
         hidecollectible()
+        draw_tomatoes()
         draw_player()
         --draw_debug()
         draw_ui()
@@ -193,7 +207,11 @@ function open_door()
         menu.opening = false
         state = "play"
         music(0,10000)
-        add_player(64, 40)
+        player = new_player(64, 40)
+        tomatoes = {
+            new_tomato(24, 150),
+            new_tomato(96, 150),
+        }
     end
 end
 
@@ -221,141 +239,151 @@ end
 -- play
 --
 
-function move_player_x(dx)
-    if not wall_area(player.x + dx, player.y, 4, 4) then
-        player.x += dx
+function move_x(e, dx)
+    if not wall_area(e.x + dx, e.y, 4, 4) then
+        e.x += dx
     end
 end
 
-function move_player_y(dy)
-    while wall_area(player.x, player.y + dy, 4, 4) do
+function move_y(e, dy)
+    while wall_area(e.x, e.y + dy, 4, 4) do
         dy *= 7 / 8
         if abs(dy) < 0.00625 then return end
     end
-    player.y += dy
+    e.y += dy
     if state == "play" then
-        if player.y > 128 + 16 then
-            player.y -= 128 + 16
+        if e.y > 128 + 16 then
+            e.y -= 128 + 16
         end
     end
 end
 
 function update_player()
-    local old_x, old_y = player.x, player.y
+    update_entity(player, btn(0), btn(1), jump(), btn(3))
+end
+
+function update_tomatoes()
+    foreach(tomatoes, function(t)
+        update_entity(t, time() % 4 > 2, time() % 4 < 2, false, false)
+    end)
+end
+
+function update_entity(e, go_left, go_right, go_up, go_down)
+    local old_x, old_y = e.x, e.y
 
     -- check x movement (easy)
-    if btn(0) then
-        player.dir = true
-        move_player_x(-player.spd)
-    elseif btn(1) then
-        player.dir = false
-        move_player_x(player.spd)
+    if go_left then
+        e.dir = true
+        move_x(e, -e.spd)
+    elseif go_right then
+        e.dir = false
+        move_x(e, e.spd)
     end
 
     -- check for ladders and ground below
-    local ladder = ladder_area(player.x, player.y, 0, 4)
-    local ladder_below = ladder_area_down(player.x, player.y + 0.0125, 4)
-    local ground_below = wall_area(player.x, player.y + 0.0125, 4, 4)
+    local ladder = ladder_area(e.x, e.y, 0, 4)
+    local ladder_below = ladder_area_down(e.x, e.y + 0.0125, 4)
+    local ground_below = wall_area(e.x, e.y + 0.0125, 4, 4)
     local grounded = ladder or ladder_below or ground_below
 
     -- if inside a ladder, stop jumping
     if ladder then
-        player.jump = 0
+        e.jump = 0
     end
 
     -- if grounded, stop falling
     if grounded then
-        player.fall = 0
+        e.fall = 0
     end
 
     -- allow jumping again
-    if player.jumped and not jump() then
-        player.jumped = false
+    if e.jumped and not go_up then
+        e.jumped = false
     end
 
-    if jump() then
+    if go_up then
         -- up/jump button
         if ladder then
-            move_player_y(-player.climbspd)
-        elseif grounded and not player.jumped then
-            player.jump = 20
-            player.jumped = true
+            move_y(e, -e.climbspd)
+        elseif grounded and not e.jumped then
+            e.jump = 20
+            e.jumped = true
             if state == "play" then
                 sfx(10)
             end
         end
-    elseif btn(3) then
+    elseif go_down then
         -- down button
         if ladder_below then
-            move_player_y(player.climbspd)
+            move_y(e, e.climbspd)
         end
     end
 
-    if player.jump > 0 then
-        move_player_y(-mid(1, player.jump / 5, 2) * jump_speed)
-        player.jump -= 1
-        if old_y == player.y then
-            player.jump = 0 -- bumped into something!
+    if e.jump > 0 then
+        move_y(e, -mid(1, e.jump / 5, 2) * jump_speed)
+        e.jump -= 1
+        if old_y == e.y then
+            e.jump = 0 -- bumped into something!
         end
     elseif not grounded then
-        move_player_y(mid(1, player.fall / 5, 2) * fall_speed)
-        player.fall += 1
+        move_y(e, mid(1, e.fall / 5, 2) * fall_speed)
+        e.fall += 1
     end
 
-    if grounded and old_x != player.x then
-        if last_move == nil or t() > last_move + 0.25 then
-            last_move = t()
+    if grounded and old_x != e.x then
+        if last_move == nil or time() > last_move + 0.25 then
+            last_move = time()
             if state == "play" then
                 sfx(11)
             end
         end
     end
 
-    if ladder and old_y != player.y then
-        if last_move == nil or t() > last_move + 0.25 then
-            last_move = t()
+    if ladder and old_y != e.y then
+        if last_move == nil or time() > last_move + 0.25 then
+            last_move = time()
             sfx(13)
         end
     end
 
     if btn(4) and state == "play" then
-        for i = rnd(3),rnd(2) do
-            local x = player.x + rnd(8) - 4
-            local y = player.y + rnd(4) - 2
-            add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
-                                dx = (rnd(2) + 3) * (player.dir and -1 or 1),
-                                color = rnd() > 0.5 and 9 or 10 })
-        end
+        if #e.shots < 10 then
+            local x = e.x + rnd(8) - 4
+            local y = e.y + rnd(4) - 3
+            add(e.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
+                                dx = (rnd(2) + 3) * (e.dir and -1 or 1),
+                                color = rnd() > 0.7 and 9 or 10 })
             sfx(12)
+        end
     end
 
-    player.grounded = grounded
-    player.ladder = ladder
+    e.grounded = grounded
+    e.ladder = ladder
 
-    foreach (player.particles, function(p)
+    foreach (e.particles, function(p)
         p.x += rnd(2) - 1
         p.y += rnd(1) - 0.5
         p.age -= 1
         if p.age < 10 then
-            del(player.particles, p)
+            del(e.particles, p)
         end
     end)
 
-    if old_x != player.x or old_y != player.y then
-        add(player.particles, { x = player.x + (rnd(8) - 4) - rnd(2) * (player.x - old_x),
-                                y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
+    if old_x != e.x or old_y != e.y then
+        add(e.particles, { x = e.x + (rnd(8) - 4) - rnd(2) * (e.x - old_x),
+                                y = e.y + (rnd(8) - 6) - rnd(2) * (e.y - old_y),
                                 age = 20 + rnd(5), color = { 3, 11 }, r = { 0.5, 1, 0.5 } })
     end
 
-    foreach (player.shots, function(s)
+    foreach (e.shots, function(s)
         -- always advance tail
         s.x0 += s.dx * 0.75
         -- advance head if no wall
         if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
             if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
-                del(player.shots, s)
+                del(e.shots, s)
             elseif wall(s.x1, s.y1) then
-                add(player.particles, { x = s.x1 + (rnd(4) - 2),
+                add(e.particles, { x = s.x1 + (rnd(4) - 2),
                                         y = s.y1 + (rnd(4) - 2),
                                         age = 20 + rnd(5), color = { 10, 9, 8 },
                                         r = { 0.5, 1, 0.5 } })
@@ -510,6 +538,10 @@ function draw_ui()
     spr(25, 7, 3)
 end
 
+function draw_entity(e)
+    spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
+end
+
 function draw_player()
     foreach (player.shots, function(s)
         line(s.x0, s.y0, s.x1, s.y1, s.color)
@@ -518,7 +550,11 @@ function draw_player()
         local t = p.age / 20
         circfill(p.x, p.y, p.r[1 + flr(t * #p.r)], p.color[1 + flr(t * #p.color)])
     end)
-    spr(player.spr, player.x - 8, player.y - 12, 2, 2, player.dir)
+    draw_entity(player)
+end
+
+function draw_tomatoes()
+    foreach(tomatoes, draw_entity)
 end
 
 function hidecollectible()
@@ -573,19 +609,19 @@ __gfx__
 0000cccc04ffff40000000003300000000dddddddddddd000000000000000000f880000000000000000000000000000055666666666666000000000000000000
 0000c7760400004000000003bb300000dd666666666666dd0000000000000000f8888000a000bb00000000000000000056555550550500600000000000000000
 0000c77604ffff400000003bbbb300001dddddddddddddd10000000000000000f8888800ba0b33b0000000000000000056677777777776600000000000000000
-0000c666040000400000033bb7b73000111111111111111100087878787880000f888e800bb3373b000000000000000056777777777777600000000000000000
-cccc000004ffff400000003bb1b1300011a11aa11a11a1a100878787878788000f88817803333333000000033000000056777777777777600000000000000000
-c7760000040000400000003bbbbb30001a1a1a1a1a11aaa10077cccccccc77000f888888310133100000003bb300000056777777777777600000000000000000
-c776000004ffff40000003bbbbbb330011a11aa1a1a1a1a107cccccccccccc6000f8888710001100000003bbbb30000056777777777777600000000000000000
-c666000004000040000033bbbb113000111a1a11aaa1a1a107cccccccccc6d600007777000000000000003bb7b73000056007777777777600000000000000000
-0000000000000000000003bbbbbb30001a1a1a1a11a1a1a107cccccccccc6c60000c000000444400000003bb1b13000056667777777777600000000000000000
-000000000000000000003bb3bbbb300011a11a1a11a1a1a107cccccccccc6d60000c000004979740000003bbbbb3000056777777777777600000000000000000
-00000000000000000003bb3bb3b30000111111111111111107cccccccccc6c6000cc100047aaaa7400003bbbbbb3300056777777777777600000000000000000
-0000000000000000003bbbbbbbb33000111199a9a999111107cccccccccc6d600c7cd100494a4a9400033bbb1113000056777777777777600000000000000000
-0000000004ffff40003bbb3bbb300000199a9a9a9a9a999107cccccccccc6c60c7cccd1049aaaa740003bb3bbbb3000056777777777777600000000000000000
-0000000004000040003bb3bbbb30000011a9a8888889a91107c6666666666d60c7cccd1049a4aa94003bb3bb3b30000056777777777777600000000000000000
-0000000004ffff400003bbbbb3300000199444eefef44991007cdcdcdcdcd6000c7cd10004999740003bbbbbbb30000055666666666666000000000000000000
-00000000040000400000333330000000119a9444e9899911000766666666600000dd100000444400000333333300000065555550550500060000000000000000
+0000c666040000400000033bb7b73000111111111111111100087878787880000f888e800bb3373b00000000000000005677777777777760000003b300000000
+cccc000004ffff400000003bb1b1300011a11aa11a11a1a100878787878788000f8881780333333300000003300000005677777777777760000b3bb222200000
+c7760000040000400000003bbbbb30001a1a1a1a1a11aaa10077cccccccc77000f888888310133100000003bb30000005677777777777760000bbb3b88822000
+c776000004ffff40000003bbbbbb330011a11aa1a1a1a1a107cccccccccccc6000f8888710001100000003bbbb300000567777777777776000b3bb8888888700
+c666000004000040000033bbbb113000111a1a11aaa1a1a107cccccccccc6d600007777000000000000003bb7b730000560077777777776000388b3888788120
+0000000000000000000003bbbbbb30001a1a1a1a11a1a1a107cccccccccc6c60000c000000444400000003bb1b13000056667777777777600028883888188882
+000000000000000000003bb3bbbb300011a11a1a11a1a1a107cccccccccc6d60000c000004979740000003bbbbb3000056777777777777600288888888888882
+00000000000000000003bb3bb3b30000111111111111111107cccccccccc6c6000cc100047aaaa7400003bbbbbb33000567777777777776002e8888888888882
+0000000000000000003bbbbbbbb33000111199a9a999111107cccccccccc6d600c7cd100494a4a9400033bbb11130000567777777777776002e8888888888882
+0000000004ffff40003bbb3bbb300000199a9a9a9a9a999107cccccccccc6c60c7cccd1049aaaa740003bb3bbbb30000567777777777776002ee888888888820
+0000000004000040003bb3bbbb30000011a9a8888889a91107c6666666666d60c7cccd1049a4aa94003bb3bb3b3000005677777777777760002eee8888882200
+0000000004ffff400003bbbbb3300000199444eefef44991007cdcdcdcdcd6000c7cd10004999740003bbbbbbb300000556666666666660000022eeee8220000
+00000000040000400000333330000000119a9444e9899911000766666666600000dd100000444400000333333300000065555550550500060000022222000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
