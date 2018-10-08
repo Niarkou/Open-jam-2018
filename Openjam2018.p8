@@ -248,6 +248,7 @@ function update_player()
         elseif grounded and not player.jumped then
             player.jump = 20
             player.jumped = true
+            -- todo sfx: quand on saute
         end
     elseif btn(3) then
         -- down button
@@ -265,6 +266,31 @@ function update_player()
     elseif not grounded then
         move_player_y(mid(1, player.fall / 5, 2) * fall_speed)
         player.fall += 1
+    end
+
+    if grounded and old_x != player.x then
+        if last_move == nil or t() > last_move + 0.025 then
+            last_move = t()
+            -- todo sfx: petits bruits quand on marche
+        end
+    end
+
+    if ladder and old_y != player.y then
+        if last_move == nil or t() > last_move + 0.025 then
+            last_move = t()
+            -- todo sfx: petits bruits quand on monte/descend l'echelle
+        end
+    end
+
+    if btnp(4) then
+        for i = 0,5 do
+            local x = player.x + rnd(8) - 4
+            local y = player.y + rnd(4) - 2
+            add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
+                                dx = (rnd(2) + 3) * (player.dir and -1 or 1),
+                                color = rnd() > 0.5 and 9 or 10 })
+        end
+        -- todo sfx: quand on tire
     end
 
     player.grounded = grounded
@@ -291,23 +317,14 @@ function update_player()
         -- advance head if no wall
         if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
             if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
-                -- shot has finished
                 del(player.shots, s)
+            elseif wall(s.x1, s.y1) then
+                -- todo sfx: quand un tir tape dans le mur
             end
         else
             s.x1 += s.dx
         end
     end)
-
-    if btnp(4) then
-        for i = 0,5 do
-            local x = player.x + rnd(8) - 4
-            local y = player.y + rnd(4) - 2
-            add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
-                                dx = (rnd(2) + 3) * (player.dir and -1 or 1),
-                                color = rnd() > 0.5 and 9 or 10 })
-        end
-    end
 end
 
 -- collectibles
