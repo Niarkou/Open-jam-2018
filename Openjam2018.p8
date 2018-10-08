@@ -24,6 +24,7 @@ function add_player(x, y)
         jump = 0, fall = 0,
         spr = 18,
         particles = {},
+        shots = {},
     }
 end
 
@@ -283,6 +284,30 @@ function update_player()
                                 y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
                                 age = -rnd(5) })
     end
+
+    foreach (player.shots, function(s)
+        -- always advance tail
+        s.x0 += s.dx * 0.75
+        -- advance head if no wall
+        if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
+            if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
+                -- shot has finished
+                del(player.shots, s)
+            end
+        else
+            s.x1 += s.dx
+        end
+    end)
+
+    if btnp(4) then
+        for i = 0,5 do
+            local x = player.x + rnd(8) - 4
+            local y = player.y + rnd(4) - 2
+            add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
+                                dx = (rnd(2) + 3) * (player.dir and -1 or 1),
+                                color = rnd() > 0.5 and 9 or 10 })
+        end
+    end
 end
 
 -- collectibles
@@ -395,6 +420,9 @@ function draw_ui()
 end
 
 function draw_player()
+    foreach (player.shots, function(s)
+        line(s.x0, s.y0, s.x1, s.y1, s.color)
+    end)
     foreach (player.particles, function(p)
         circfill(p.x, p.y, p.age < 5 and 0.5 or 1, p.age < 5 and 11 or 3)
     end)
