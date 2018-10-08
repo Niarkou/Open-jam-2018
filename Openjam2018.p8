@@ -332,12 +332,7 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         -- up/jump button
         if ladder then
             move_y(e, -e.climbspd)
-            local ladder_x = flr(player.x / 8) * 8
-                if player.x < ladder_x + 4 then
-                    player.x += 0.5
-                elseif player.x > ladder_x + 4 then
-                    player.x -= 0.5
-                end
+            ladder_middle()
         elseif grounded and not e.jumped then
             e.jump = 20
             e.jumped = true
@@ -349,6 +344,7 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         -- down button
         if ladder_below then
             move_y(e, e.climbspd)
+            ladder_middle()
         end
     end
 
@@ -542,7 +538,14 @@ function ladder_area(x,y,w,h)
            ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
 
-
+function ladder_middle()
+    local ladder_x = flr(player.x / 8) * 8
+        if player.x < ladder_x + 4 then
+            player.x += 0.5
+        elseif player.x > ladder_x + 4 then
+            player.x -= 0.5
+        end
+end
 --
 -- pause
 --
