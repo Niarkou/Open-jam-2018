@@ -150,8 +150,10 @@ function open_door()
         elseif menu.rectpos == 2 then
             menu.scores = true
         end
+        sfx(16)
     elseif btnp(4) and menu.scores then
         menu.scores = false
+        sfx(16)
     end
 
     if menu.opening == true then
@@ -186,8 +188,10 @@ end
 function choose_menu()
     if btnp(3) and menu.rectpos < 2 then
         menu.rectpos += 1
-    elseif btn(2) and menu.rectpos > 1 then
+        sfx(16)
+    elseif btnp(2) and menu.rectpos > 1 then
         menu.rectpos -= 1
+        sfx(16)
     end
 end
 
@@ -252,7 +256,9 @@ function update_player()
         elseif grounded and not player.jumped then
             player.jump = 20
             player.jumped = true
-            -- todo sfx: quand on saute
+            if state == "play" then
+                sfx(10)
+            end
         end
     elseif btn(3) then
         -- down button
@@ -275,14 +281,14 @@ function update_player()
     if grounded and old_x != player.x then
         if last_move == nil or t() > last_move + 0.025 then
             last_move = t()
-            -- todo sfx: petits bruits quand on marche
+            sfx(11)
         end
     end
 
     if ladder and old_y != player.y then
         if last_move == nil or t() > last_move + 0.025 then
             last_move = t()
-            -- todo sfx: petits bruits quand on monte/descend l'echelle
+            sfx(13)
         end
     end
 
@@ -294,7 +300,9 @@ function update_player()
                                 dx = (rnd(2) + 3) * (player.dir and -1 or 1),
                                 color = rnd() > 0.5 and 9 or 10 })
         end
-        -- todo sfx: quand on tire
+        if state == "play" then
+            sfx(12)
+        end
     end
 
     player.grounded = grounded
@@ -327,7 +335,9 @@ function update_player()
                                         y = s.y1 + (rnd(4) - 2),
                                         age = 20 + rnd(5), color = { 10, 9, 8 },
                                         r = { 0.5, 1, 0.5 } })
-                -- todo sfx: quand un tir tape dans le mur
+                if state == "play" then
+                    sfx(14)
+                end
             end
         else
             s.x1 += s.dx
@@ -355,6 +365,7 @@ function collect_fish()
             add(hidefish, {cx = f.cx, cy = f.cy})
             fish += 1
             del(fishes, f)
+            sfx(15)
         end
     end)
 end
@@ -552,6 +563,13 @@ __sfx__
 0110000000000135201752011520175200000017520155201c5301a53018530185301a530185301753015530155301353011530135301a5301d52013520105201352010520175201552010520115201352013520
 011000001f5001f5201f500115001f520215202152021520235222352223522235222352226520245202452024520245202352021520235200000000000285201d52000000215201d52000000215202152021520
 01100000115001352000000000001352015520155201552017522175221752217522175221a5201852018520185201852017520155201752000000000001c5201152000000155201152000000155201552015520
+000400001c7501f750217532120023200252002620027200292002a2002c2002e2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00020000090400b0400d0400130001300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000200000f33317333213332a333343333d333133030f403093030730300003000030000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000100001e51022510255102750000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000200000e43013430174301442011420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0003000014220192301d23023230272302c2400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00010000191501b1501c1500310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 01444644
 00 02444644
