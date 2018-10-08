@@ -112,6 +112,16 @@ function csprint(text, y, height, color)
     cosprint(text, x, y, height, color)
 end
 
+-- cool print (outlined)
+
+function coprint(text, x, y)
+    for i = -1,1 do
+        for j = -1,1 do
+            print(text, x+i, y+j, 0)
+        end
+    end
+end
+
 -- cool rectfill (centered, outlined)
 
 function corectfill(y0, y1, w, color1, color2)
@@ -461,7 +471,9 @@ function collect_meat()
     foreach(meat, function(m)
         if flr(player.x / 8) == m.cx and flr(player.y / 8) == m.cy then
             add(hidemeat, {cx = m.cx, cy = m.cy})
-            lives += 1
+            if lives < livesmax then
+                lives += 1
+            end
             del(meat, m)
             sfx(15)
         end
@@ -481,7 +493,7 @@ end
 
 function lives_handling()
     local l = 40 / livesmax
-    lives_x1 = 76 + lives * l
+    lives_x1 = 66 + lives * l
 end
 
 -- smoke
@@ -634,14 +646,16 @@ function draw_world()
 end
 
 function draw_ui()
-    csprint(tostr(score), 3, 9, 13)
+    csprint(tostr(flr(score).."    "), 3, 9, 13)
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
     palt(0, false)
-    orectfill(76, 4, lives_x1, 8, 8, 0)
+    orectfill(66, 4, lives_x1, 8, 8, 0)
     palt(0, true)
+    spr(24, 113, 3)
     if spam(player.x, player.y) then
-        print("miom miom miom", player.x - 25, player.y - 22, 6)
+        cosprint("miom miom miom", player.x - 25, player.y - 22, 6, 6)
+        score += 1/60
     end
 end
 
