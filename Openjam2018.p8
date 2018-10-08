@@ -302,7 +302,7 @@ function update_player()
     end
 
     if grounded and old_x != player.x then
-        if last_move == nil or t() > last_move + 0.025 then
+        if last_move == nil or t() > last_move + 0.25 then
             last_move = t()
             if state == "play" then
                 sfx(11)
@@ -311,14 +311,14 @@ function update_player()
     end
 
     if ladder and old_y != player.y then
-        if last_move == nil or t() > last_move + 0.025 then
+        if last_move == nil or t() > last_move + 0.25 then
             last_move = t()
             sfx(13)
         end
     end
 
-    if btnp(4) then
-        for i = 0,5 do
+    if btn(4) then
+        for i = rnd(3),rnd(2) do
             local x = player.x + rnd(8) - 4
             local y = player.y + rnd(4) - 2
             add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
