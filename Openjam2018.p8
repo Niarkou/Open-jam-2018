@@ -511,7 +511,7 @@ end
 
 function lives_handling()
     local l = 40 / livesmax
-    lives_x1 = 66 + lives * l
+    lives_x1 = 80 + lives * l
 end
 
 -- smoke
@@ -664,16 +664,16 @@ function draw_world()
 end
 
 function draw_ui()
-    csprint(tostr(flr(score).."    "), 3, 9, 13)
+    csprint(tostr(flr(score).."     "), 3, 9, 13)
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
     palt(0, false)
-    orectfill(66, 4, lives_x1, 8, 8, 0)
+    orectfill(80, 4, lives_x1, 8, 8, 0)
     palt(0, true)
-    spr(24, 113, 3)
+    spr(24, 66, 3)
     if spam(player.x, player.y) then
         cosprint("miom miom miom", player.x - 25, player.y - 22, 6, 6)
-        score += 1/60
+        score += 1/30
     end
 end
 
