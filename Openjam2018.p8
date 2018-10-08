@@ -23,6 +23,7 @@ function new_entity(x, y)
         jump = 0, fall = 0,
         particles = {},
         shots = {},
+        cooldown = 0,
     }
 end
 
@@ -120,9 +121,6 @@ function _init()
     state = "menu"
     score = 0
     fish = 0
-    hidefish = {}
-    smoke = {}
-    add_smoke(150)
     player = new_player(64, 150)
     collectibles()
     menu = {
@@ -213,9 +211,13 @@ function open_door()
 
     if menu.doordw < 2 then
         menu.opening = false
+        music(0,10000)
         state = "play"
         score = 0
-        music(0,10000)
+        fish = 200
+        hidefish = {}
+        smoke = {}
+        add_smoke(150)
         player = new_player(64, 40)
         tomatoes = {
             new_tomato(24, 150),
@@ -369,13 +371,17 @@ function update_entity(e, go_left, go_right, go_up, go_down)
     end
 
     if btn(4) and state == "play" then
-        if #e.shots < 10 then
+        if e.cooldown > 0 then
+            e.cooldown -= 1
+        elseif #e.shots < 10 and fish > 0 then
             local x = e.x + rnd(8) - 4
             local y = e.y + rnd(4) - 3
             add(e.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
-                                dx = (rnd(2) + 3) * (e.dir and -1 or 1),
-                                color = rnd() > 0.7 and 9 or 10 })
+                           dx = (rnd(2) + 3) * (e.dir and -1 or 1),
+                           color = rnd() > 0.7 and 9 or 10 })
             sfx(12)
+            fish -= 1
+            e.cooldown = 3
         end
     end
 
@@ -437,7 +443,7 @@ function collect_fish()
     foreach(fishes, function(f)
         if flr(player.x / 8) == f.cx and flr(player.y / 8) == f.cy then
             add(hidefish, {cx = f.cx, cy = f.cy})
-            fish += 1
+            fish += 200
             del(fishes, f)
             sfx(15)
         end
