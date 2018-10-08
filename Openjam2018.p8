@@ -404,7 +404,6 @@ function hidecollectible()
         palt(0, false)
         rectfill(f.cx*8, f.cy*8, f.cx*8 + 7, f.cy*8 + 7, 0)
         palt(0, true)
-        score += 1
     end)
     end
 end
