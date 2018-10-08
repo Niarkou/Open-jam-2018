@@ -664,7 +664,7 @@ function draw_world()
 end
 
 function draw_ui()
-    csprint(tostr(flr(score).."     "), 3, 9, 13)
+    csprint(tostr(flr(score).."     "), 2, 9, 13)
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
     palt(0, false)
