@@ -343,12 +343,21 @@ function update_tomatoes()
     foreach(tomatoes, function(t)
         local old_x, old_y = t.x, t.y
         update_entity(t, t.plan[0], t.plan[1], t.plan[2], t.plan[3])
+        -- check collision with player
+        if abs(t.x - player.x) <= 6 and abs(t.y - player.y) <= 8 then
+            if player.hit == 0 then
+                player.hit = 5
+                sfx(19)
+            end
+        end
+        -- update move plan if necessary
         t.plan.time -= 1
         if t.plan.time <= 0 or (old_x == t.x and old_y == t.y) then
             t.plan = { time = crnd(80, 100) }
             t.plan[flr(rnd(2))] = true -- go left or right
             t.plan[2] = rnd() > 0.8 -- jump
         end
+        -- die in an explosion if necessary
         if t.lives <= 0 then
             del(tomatoes, t)
             for i = 0,10 do
