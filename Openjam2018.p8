@@ -12,8 +12,9 @@ config = {
     pause = {tl = "pause"},
 }
 
-g_lives_start = 5
-g_lives_max = 10
+g_lives_player_start = 5
+g_lives_player_max = 10
+g_lives_tomato = 10
 g_points_kill = 10
 
 --
@@ -23,7 +24,6 @@ g_points_kill = 10
 function new_game()
     score = 0
     fish = 0
-    lives = g_lives_start
     lives_x1 = 76
     hidefish = {}
     hidemeat = {}
@@ -41,7 +41,6 @@ end
 function new_entity(x, y)
     return {
         x = x, y = y,
-        lives = 10,
         anim = rnd(10),
         hit = 0,
         climbspd = 0.5,
@@ -57,6 +56,7 @@ end
 
 function new_player(x, y)
     local e = new_entity(x, y)
+    e.lives = g_lives_player_start
     e.spd = 1.0
     e.spr = 18
     e.pcolors = { 3, 11 }
@@ -65,6 +65,7 @@ end
 
 function new_tomato(x, y)
     local e = new_entity(x, y)
+    e.lives = g_lives_tomato
     e.spd = 0.5
     e.spr = 30
     e.pcolors = { 2, 8 }
@@ -194,7 +195,7 @@ function _update60()
     elseif state == "pause" then
         update_pause()
         update_particles()
-        update_player()    
+        update_player()
     end
 end
 
@@ -319,6 +320,7 @@ function update_particles()
 end
 
 function update_player()
+    if player.dead then return end
     update_entity(player, btn(0), btn(1), jump(), btn(3))
 
     -- shooting!
@@ -337,6 +339,20 @@ function update_player()
             player.cooldown = 2
         end
     end
+
+    -- death
+    if player.lives == 0 then
+        for i = 0,20 do
+            add(particles, { x = player.x + rnd(8) - 4,
+                             y = player.y + rnd(8) - 8,
+                             age = 20 + rnd(5),
+                             color = { 0, 5, 3, 11 },
+                             r = { 3, 5, 7 } })
+        end
+        sfx(18)
+        player.dead = true
+        player.cooldown = 60
+    end
 end
 
 function update_tomatoes()
@@ -346,7 +362,8 @@ function update_tomatoes()
         -- check collision with player
         if abs(t.x - player.x) <= 6 and abs(t.y - player.y) <= 8 then
             if player.hit == 0 then
-                player.hit = 5
+                player.lives -= 1
+                player.hit = 10
                 sfx(19)
             end
         end
@@ -499,12 +516,6 @@ function update_entity(e, go_left, go_right, go_up, go_down)
             del(e.shots, s)
         end
     end)
-
-    -- death
-    if lives == 0 then
-        state = "pause"
-        lives = 5
-    end
 end
 
 -- collectibles
@@ -538,8 +549,8 @@ function collect_meat()
     foreach(meat, function(m)
         if flr(player.x / 8) == m.cx and flr(player.y / 8) == m.cy then
             add(hidemeat, {cx = m.cx, cy = m.cy})
-            if lives < g_lives_max then
-                lives += 1
+            if player.lives < g_lives_player_max then
+                player.lives += 1
             end
             del(meat, m)
             sfx(15)
@@ -559,8 +570,17 @@ end
 -- lives
 
 function lives_handling()
-    local l = 40 / g_lives_max
-    lives_x1 = 80 + lives * l
+    local l = 40 / g_lives_player_max
+    lives_x1 = 80 + player.lives * l
+
+    -- if dead, switch to pause state after 60 frames
+    if player.dead then
+        player.cooldown -= 1
+        if player.cooldown <= 0 then
+            state = "pause"
+            player.lives = 5
+        end
+    end
 end
 
 -- smoke
@@ -673,7 +693,7 @@ function draw_menu()
     palt(0, false)
     sspr(96, 8, 16, 16, menu.doorx, 0, menu.doordw, 128)
     palt(0,true)
-    
+
     if state == "menu" then
         if menu.doordw > 126 then
             if not menu.scores then
@@ -736,6 +756,7 @@ function draw_ui()
 end
 
 function draw_entity(e)
+    if e.dead then return end
     if e.hit > 0 then for i = 1,15 do pal(i, 6 + rnd(2)) end end
     --spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
     local dy = 2 * cos(e.anim / 32)
