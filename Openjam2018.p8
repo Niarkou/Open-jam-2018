@@ -327,6 +327,15 @@ function update_player()
     if player.dead then return end
     update_entity(player, btn(0), btn(1), jump(), btn(3))
 
+    -- eating spam?
+    player.spam = spam(player.x, player.y)
+    if player.spam then
+        if player.anim % 16 < 1 then
+            score += 1
+            sfx(17)
+        end
+    end
+
     -- shooting!
     if btn(4) and state == "play" then
         if player.cooldown > 0 then
@@ -761,15 +770,11 @@ function draw_ui()
     orectfill(80, 4, lives_x1, 8, 8, 0)
     palt(0, true)
     spr(24, 68, 2)
-    if spam(player.x, player.y) then
+    if player.spam then
         local px = player.x - sin(player.anim / 20)
         cosprint("miom", px - 20, player.y - 22 + 4 * cos(player.anim / 20), 6, crnd(6, 10))
         cosprint("miom", px -  5, player.y - 22 + 3 * cos(player.anim / 16), 6, crnd(6, 10))
         cosprint("miom", px + 10, player.y - 22 + 4 * cos(player.anim / 24), 6, crnd(6, 10))
-        if player.anim % 16 < 1 then
-            score += 1
-            sfx(17)
-        end
     end
 end
 
