@@ -591,6 +591,8 @@ function lives_handling()
         if player.cooldown <= 0 then
             state = "pause"
             player.lives = 5
+            menu.doordw = 128
+            menu.doorx = 0
         end
     end
 end
@@ -716,11 +718,11 @@ function draw_menu()
                 csprint("high", 78, 9, 13)
             else
                 csprint("high", menu.high_y, 9, 13)
-                csprint("1 ........ "..dget(1), 45, 6, 13)
-                csprint("2 ........ "..dget(2), 55, 6, 13)
-                csprint("3 ........ "..dget(3), 65, 6, 13)
-                csprint("4 ........ "..dget(4), 75, 6, 13)
-                csprint("5 ........ "..dget(5), 85, 6, 13)
+                csprint("1 ...... "..dget(1), 45, 6, 13)
+                csprint("2 ...... "..dget(2), 55, 6, 13)
+                csprint("3 ...... "..dget(3), 65, 6, 13)
+                csprint("4 ...... "..dget(4), 75, 6, 13)
+                csprint("5 ...... "..dget(5), 85, 6, 13)
             end
 
             camera(0, 14*8)
