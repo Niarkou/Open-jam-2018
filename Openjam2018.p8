@@ -88,6 +88,7 @@ function _init()
     score = 0
     fish = 0
     add_player(64, 150)
+    collectibles()
     menu = {
         doordw = 128,
         doorx = 0,
@@ -110,6 +111,7 @@ function _update60()
         update_player()
     elseif state == "play" then
         update_player()
+        collect_fish()
     end
 end
 
@@ -122,6 +124,7 @@ function _draw()
         draw_player()
         draw_debug()
         draw_ui()
+        hidecollectible()
     end
 end 
 
@@ -278,6 +281,33 @@ function update_player()
     end
 end
 
+-- collectibles
+
+function collectibles()
+    fishes = {}
+    for j=0, 15 do
+        for i=0, 15 do
+            local tile = mget(i,j)
+            if tile == 25 then -- this is a fish
+                add(fishes, { cx = i, cy = j })
+            end
+        end
+    end
+end
+
+function collect_fish()
+    hidefish = {}
+    foreach(fishes, function(f)
+        if flr(player.x / 8) == f.cx and flr(player.y / 8) == f.cy then
+            add(hidefish, {cx = f.cx, cy = f.cy})
+            fish += 1
+            del(fishes, f)
+        end
+    end)
+end
+
+-- walls and ladders
+
 function wall(x,y)
     local m = mget(x/8, y/8)
     return not fget(m, 4) and wall_or_ladder(x, y)
@@ -366,6 +396,15 @@ function draw_player()
         circfill(p.x, p.y, p.age < 5 and 0.5 or 1, p.age < 5 and 11 or 3)
     end)
     spr(player.spr, player.x - 8, player.y - 12, 2, 2, player.dir)
+end
+
+function hidecollectible()
+    foreach(hidefish, function(f)
+        palt(0, false)
+        rectfill(f.cx*8, f.cy*8, f.cx*8 + 8, f.cy*8 + 8, 0)
+        palt(0, true)
+        score += 1
+    end)
 end
 
 function draw_debug()
