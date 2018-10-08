@@ -302,7 +302,7 @@ function move_y(e, dy)
     e.y += dy
     if state == "play" then
         if e.y > 128 + 16 then
-            e.y -= 128 + 16
+            e.y = 0
         end
     end
 end
@@ -366,18 +366,20 @@ end
 
 function update_entity(e, go_left, go_right, go_up, go_down)
     -- update some variables
-    e.hit -= 1
     e.anim += 1
+    e.hit = max(0, e.hit - 1)
 
     local old_x, old_y = e.x, e.y
 
     -- check x movement (easy)
     if go_left then
         e.dir = true
-        move_x(e, -e.spd)
+        move_x(e, -0.5 * e.spd)
+        move_x(e, -0.5 * e.spd)
     elseif go_right then
         e.dir = false
-        move_x(e, e.spd)
+        move_x(e, 0.5 * e.spd)
+        move_x(e, 0.5 * e.spd)
     end
 
     -- check for ladders and ground below
@@ -415,7 +417,7 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         end
     elseif go_down then
         -- down button
-        if ladder_below then
+        if ladder or ladder_below then
             move_y(e, e.climbspd)
             ladder_middle()
         end
