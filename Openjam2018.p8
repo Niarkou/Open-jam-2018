@@ -174,6 +174,7 @@ function open_door()
         sfx(16)
     elseif btnp(4) and menu.scores then
         menu.scores = false
+        menu.high_y = 78
         sfx(16)
     end
 
@@ -317,7 +318,7 @@ function update_player()
         end
     end
 
-    if btn(4) then
+    if btn(4) and state == "play" then
         for i = rnd(3),rnd(2) do
             local x = player.x + rnd(8) - 4
             local y = player.y + rnd(4) - 2
@@ -325,9 +326,7 @@ function update_player()
                                 dx = (rnd(2) + 3) * (player.dir and -1 or 1),
                                 color = rnd() > 0.5 and 9 or 10 })
         end
-        if state == "play" then
             sfx(12)
-        end
     end
 
     player.grounded = grounded
@@ -458,6 +457,17 @@ function ladder_area(x,y,w,h)
            ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
 
+-- keeping scores
+
+function keep_score(sc)
+    for i = 5,1,-1 do
+        if dget(i) < sc then
+            dset(i+1,dget(i))
+            dset(i, sc)
+        end
+    end  
+end
+
 --
 -- drawing
 --
@@ -476,6 +486,11 @@ function draw_menu()
             csprint("high", 78, 9, 13)
         else
             csprint("high", menu.high_y, 9, 13)
+            csprint("1 ........ "..dget(1), 45, 6, 13)
+            csprint("2 ........ "..dget(2), 55, 6, 13)
+            csprint("3 ........ "..dget(3), 65, 6, 13)
+            csprint("4 ........ "..dget(4), 75, 6, 13)
+            csprint("5 ........ "..dget(5), 85, 6, 13)
         end
 
         camera(0, 14*8)
