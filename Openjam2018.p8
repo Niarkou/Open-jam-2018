@@ -87,6 +87,7 @@ function _init()
     state = "menu"
     score = 0
     fish = 0
+    hidefish = {}
     add_player(64, 150)
     collectibles()
     menu = {
@@ -121,10 +122,10 @@ function _draw()
         draw_menu()
     elseif state == "play" then
         draw_world()
+        hidecollectible()
         draw_player()
         draw_debug()
         draw_ui()
-        hidecollectible()
     end
 end 
 
@@ -296,7 +297,6 @@ function collectibles()
 end
 
 function collect_fish()
-    hidefish = {}
     foreach(fishes, function(f)
         if flr(player.x / 8) == f.cx and flr(player.y / 8) == f.cy then
             add(hidefish, {cx = f.cx, cy = f.cy})
@@ -399,12 +399,14 @@ function draw_player()
 end
 
 function hidecollectible()
+    if #hidefish != 0 then
     foreach(hidefish, function(f)
         palt(0, false)
-        rectfill(f.cx*8, f.cy*8, f.cx*8 + 8, f.cy*8 + 8, 0)
+        rectfill(f.cx*8, f.cy*8, f.cx*8 + 7, f.cy*8 + 7, 0)
         palt(0, true)
         score += 1
     end)
+    end
 end
 
 function draw_debug()
