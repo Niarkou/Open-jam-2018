@@ -20,6 +20,7 @@ function new_game()
     lives_x1 = 76
     hidefish = {}
     hidemeat = {}
+    background = 0
     smoke = {}
     add_smoke(150)
     player = new_player(64, 40)
@@ -180,6 +181,7 @@ function _draw()
         draw_menu()
     elseif state == "play" then
         cls(0)
+        draw_background()
         draw_smoke()
         draw_world()
         hidecollectible(hidefish)
@@ -664,7 +666,7 @@ function draw_ui()
 end
 
 function draw_entity(e)
-    if (e.hit > 0) and (e.hit % 2 < 1) then for i = 1,15 do pal(i, 7) end end
+    if e.hit > 0 then for i = 1,15 do pal(i, 6 + rnd(2)) end end
     spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
     pal()
 end
@@ -692,6 +694,23 @@ function hidecollectible(hide)
         palt(0, true)
     end)
     end
+end
+
+function draw_background()
+    local x1 = 64 * sin(background)
+    local y1 = 96 * cos(background)
+    local x2 = 96 * sin(background * 2)
+    local y2 = 64 * cos(background * 2)
+    fillp(0xfafa.8)
+    for i = 0,14 do
+        circfill(64 + x1, 64 + y1, 160 - 12 * i, i % 2)
+    end
+    fillp(0x5f5f.8)
+    for i = 0,14 do
+        circfill(64 - x2, 64 - y2, 160 - 12 * i, i % 2)
+    end
+    fillp()
+    background += 1/256
 end
 
 function draw_smoke()
