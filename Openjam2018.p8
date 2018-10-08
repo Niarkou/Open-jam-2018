@@ -103,7 +103,7 @@ end
 
 function _init()
     cartdata("joe_pickle")
-    music(7, 10000)
+    music(7, 8000)
     state = "menu"
     score = 0
     fish = 0
@@ -136,6 +136,9 @@ function _update60()
         update_player()
         collect_fish()
         update_smoke()
+    elseif state == "pause" then
+        update_pause()
+        update_player()    
     end
 end
 
@@ -150,6 +153,8 @@ function _draw()
         draw_player()
         --draw_debug()
         draw_ui()
+    elseif state == "pause" then
+        draw_menu()
     end
 end 
 
@@ -167,7 +172,7 @@ function open_door()
     if btnp(4) and not menu.scores then
         if menu.rectpos == 1 then
             menu.opening = true
-            music(-7, 800)
+            music(-7, 5000)
         elseif menu.rectpos == 2 then
             menu.scores = true
         end
@@ -192,6 +197,7 @@ function open_door()
     if menu.doordw < 2 then
         menu.opening = false
         state = "play"
+        score = 0
         music(0,10000)
         add_player(64, 40)
     end
@@ -457,6 +463,26 @@ function ladder_area(x,y,w,h)
            ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
 
+
+--
+-- pause
+--
+
+function update_pause()
+    if fish > 0 then
+        score += 1
+        fish -= 1
+    end
+
+    if btn(4) then
+        keep_score(score)
+        state = "menu"
+        sfx(16)
+        music(-0, 5000)
+        music(7, 8000)
+    end
+end
+
 -- keeping scores
 
 function keep_score(sc)
@@ -473,25 +499,38 @@ end
 --
 
 function draw_menu()
+
     palt(0, false)
     sspr(96, 8, 16, 16, menu.doorx, 0, menu.doordw, 128)
     palt(0,true)
+    
+    if state == "menu" then
+        if menu.doordw > 126 then
+            if not menu.scores then
+                corectfill(menu.rect_y0, menu.rect_y1, 35, 6, 0)
+                csprint("joe       ", 32, 12, 11)
+                csprint("    pickle", 32, 12, 9)
+                csprint("play", 60, 9, 13)
+                csprint("high", 78, 9, 13)
+            else
+                csprint("high", menu.high_y, 9, 13)
+                csprint("1 ........ "..dget(1), 45, 6, 13)
+                csprint("2 ........ "..dget(2), 55, 6, 13)
+                csprint("3 ........ "..dget(3), 65, 6, 13)
+                csprint("4 ........ "..dget(4), 75, 6, 13)
+                csprint("5 ........ "..dget(5), 85, 6, 13)
+            end
 
-    if menu.doordw > 126 then
-        if not menu.scores then
-            corectfill(menu.rect_y0, menu.rect_y1, 35, 6, 0)
-            csprint("joe       ", 32, 12, 11)
-            csprint("    pickle", 32, 12, 9)
-            csprint("play", 60, 9, 13)
-            csprint("high", 78, 9, 13)
-        else
-            csprint("high", menu.high_y, 9, 13)
-            csprint("1 ........ "..dget(1), 45, 6, 13)
-            csprint("2 ........ "..dget(2), 55, 6, 13)
-            csprint("3 ........ "..dget(3), 65, 6, 13)
-            csprint("4 ........ "..dget(4), 75, 6, 13)
-            csprint("5 ........ "..dget(5), 85, 6, 13)
+            camera(0, 14*8)
+            draw_player()
+            camera()
         end
+    elseif state == "pause" then
+        csprint("game     ", 32, 12, 9)
+        csprint("     over", 32, 12, 11)
+        csprint("score "..tostr(score), 80, 9, 13)
+        cosprint(tostr(fish), 68, 60, 6, 9)
+        spr(25, 54, 58)
 
         camera(0, 14*8)
         draw_player()
