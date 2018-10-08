@@ -30,12 +30,16 @@ function new_game()
     background = 0
     particles = {}
     smoke = {}
+    fishes, meat = {}, {}
     add_smoke(150)
     player = new_player(16, 80)
     tomatoes = {
         new_tomato(24, 150),
         new_tomato(96, 150),
     }
+    collectibles(fishes, 25)
+    collectibles(meat, 24)
+
 end
 
 function new_entity(x, y)
@@ -161,7 +165,6 @@ function _init()
     state = "menu"
     particles = {}
     player = new_player(64, 150)
-    collectibles()
     menu = {
         doordw = 128,
         doorx = 0,
@@ -509,15 +512,12 @@ end
 
 -- collectibles
 
-function collectibles()
-    fishes, meat = {}, {}
+function collectibles(table, n)
     for j=0, 15 do
         for i=0, 15 do
             local tile = mget(i,j)
-            if tile == 25 then -- this is a fish
-                add(fishes, { cx = i, cy = j })
-            elseif tile == 24 then -- this is meat
-                add(meat, { cx = i, cy = j })
+            if tile == n then
+                add(table, { cx = i, cy = j })
             end
         end
     end
@@ -526,10 +526,16 @@ end
 function collect_fish()
     foreach(fishes, function(f)
         if flr(player.x / 8) == f.cx and flr(player.y / 8) == f.cy then
-            add(hidefish, {cx = f.cx, cy = f.cy})
+            add(hidefish, {cx = f.cx, cy = f.cy, date = time()})
             fish += 200
             del(fishes, f)
             sfx(15)
+        end
+    end)
+    foreach(hidefish, function(f)
+        if f.date + 20 < time() then
+            add(fishes, f)
+            del(hidefish, f)
         end
     end)
 end
@@ -537,12 +543,18 @@ end
 function collect_meat()
     foreach(meat, function(m)
         if flr(player.x / 8) == m.cx and flr(player.y / 8) == m.cy then
-            add(hidemeat, {cx = m.cx, cy = m.cy})
+            add(hidemeat, {cx = m.cx, cy = m.cy, date = time()})
             if lives < g_lives_max then
                 lives += 1
             end
             del(meat, m)
             sfx(15)
+        end
+    end)
+    foreach(hidemeat, function(f)
+        if f.date + 20 < time() then
+            add(meat, f)
+            del(hidemeat, f)
         end
     end)
 end
