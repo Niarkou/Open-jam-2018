@@ -21,6 +21,7 @@ function new_game()
     hidefish = {}
     hidemeat = {}
     background = 0
+    particles = {}
     smoke = {}
     add_smoke(150)
     player = new_player(16, 80)
@@ -33,7 +34,7 @@ end
 function new_entity(x, y)
     return {
         x = x, y = y,
-        lives = 20,
+        lives = 10,
         hit = 0,
         climbspd = 0.5,
         dir = false,
@@ -41,7 +42,6 @@ function new_entity(x, y)
         ladder = false,
         jumped = false,
         jump = 0, fall = 0,
-        particles = {},
         shots = {},
         cooldown = 0,
     }
@@ -57,7 +57,7 @@ end
 
 function new_tomato(x, y)
     local e = new_entity(x, y)
-    e.spd = 0.75
+    e.spd = 0.5
     e.spr = 30
     e.pcolors = { 2, 8 }
     e.plan = { time = 0 }
@@ -151,6 +151,7 @@ function _init()
     cartdata("joe_pickle")
     music(7, 8000)
     state = "menu"
+    particles = {}
     player = new_player(64, 150)
     collectibles()
     menu = {
@@ -172,8 +173,10 @@ end
 function _update60()
     if state == "menu" then
         update_menu()
+        update_particles()
         update_player()
     elseif state == "play" then
+        update_particles()
         update_player()
         update_tomatoes()
         collect_fish()
@@ -182,6 +185,7 @@ function _update60()
         lives_handling()
     elseif state == "pause" then
         update_pause()
+        update_particles()
         update_player()    
     end
 end
@@ -198,6 +202,7 @@ function _draw()
         draw_world()
         hidecollectible(hidefish)
         hidecollectible(hidemeat)
+        draw_particles()
         draw_tomatoes()
         draw_player()
         --draw_debug()
@@ -292,6 +297,17 @@ function move_y(e, dy)
             e.y -= 128 + 16
         end
     end
+end
+
+function update_particles()
+    foreach (particles, function(p)
+        p.x += rnd(1) - 0.5
+        p.y -= rnd(0.5)
+        p.age -= 1
+        if p.age < 0 then
+            del(particles, p)
+        end
+    end)
 end
 
 function update_player()
@@ -416,20 +432,11 @@ function update_entity(e, go_left, go_right, go_up, go_down)
     -- hit!
     e.hit -= 1
 
-    foreach (e.particles, function(p)
-        p.x += rnd(1) - 0.5
-        p.y -= rnd(0.5)
-        p.age -= 1
-        if p.age < 10 then
-            del(e.particles, p)
-        end
-    end)
-
     if old_x != e.x or old_y != e.y then
-        add(e.particles, { x = e.x + (rnd(6) - 3) - rnd(2) * (e.x - old_x),
-                           y = e.y + (rnd(4) - 2) - rnd(2) * (e.y - old_y),
-                           age = 20 + rnd(5), color = e.pcolors,
-                           r = { 0.5, 1, 0.5 } })
+        add(particles, { x = e.x + (rnd(6) - 3) - rnd(2) * (e.x - old_x),
+                         y = e.y + rnd(2) + 2 - rnd(2) * (e.y - old_y),
+                         age = 20 + rnd(5), color = e.pcolors,
+                         r = { 0.5, 1, 0.5 } })
     end
 
     foreach (e.shots, function(s)
@@ -449,10 +456,10 @@ function update_entity(e, go_left, go_right, go_up, go_down)
                 s.exploded = true
             end
             if s.exploded then
-                add(e.particles, { x = s.x1 + (rnd(4) - 2),
-                                   y = s.y1 + (rnd(4) - 2),
-                                   age = 20 + rnd(5), color = { 10, 9, 8 },
-                                   r = { 0.5, 1, 0.5 } })
+                add(particles, { x = s.x1 + (rnd(4) - 2),
+                                 y = s.y1 + (rnd(4) - 2),
+                                 age = 20 + rnd(5), color = { 10, 9, 8 },
+                                 r = { 0.5, 1, 0.5 } })
                 sfx(14)
             end
             s.x1 += s.dx
@@ -649,6 +656,7 @@ function draw_menu()
             end
 
             camera(0, 14*8)
+            draw_particles()
             draw_player()
             camera()
         end
@@ -660,6 +668,7 @@ function draw_menu()
         spr(25, 54, 58)
 
         camera(0, 14*8)
+        draw_particles()
         draw_player()
         camera()
     end
@@ -685,12 +694,6 @@ function draw_ui()
 end
 
 function draw_entity(e)
-    -- trail particles
-    foreach (e.particles, function(p)
-        local t = p.age / 20
-        circfill(p.x, p.y, p.r[1 + flr(t * #p.r)], p.color[1 + flr(t * #p.color)])
-    end)
-    -- actual sprite
     if e.hit > 0 then for i = 1,15 do pal(i, 6 + rnd(2)) end end
     spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
     pal()
@@ -701,6 +704,13 @@ function draw_player()
         line(s.x0, s.y0, s.x1, s.y1, s.color)
     end)
     draw_entity(player)
+end
+
+function draw_particles()
+    foreach (particles, function(p)
+        local t = p.age / 20
+        circfill(p.x, p.y, p.r[1 + flr(t * #p.r)], p.color[1 + flr(t * #p.color)])
+    end)
 end
 
 function draw_tomatoes()
