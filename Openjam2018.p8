@@ -476,7 +476,7 @@ end
 
 function lives_handling()
     local l = 40 / livesmax
-    lives_x1 = 76 + 4 * l
+    lives_x1 = 76 + lives * l
 end
 
 -- smoke
