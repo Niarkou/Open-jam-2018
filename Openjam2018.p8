@@ -724,7 +724,10 @@ function draw_ui()
     palt(0, true)
     spr(24, 68, 2)
     if spam(player.x, player.y) then
-        cosprint("miom miom miom", player.x - 25, player.y - 22, 6, 6)
+        local px = player.x - sin(player.anim / 20)
+        cosprint("miom", px - 20, player.y - 22 + 4 * cos(player.anim / 20), 6, crnd(6, 10))
+        cosprint("miom", px -  5, player.y - 22 + 3 * cos(player.anim / 16), 6, crnd(6, 10))
+        cosprint("miom", px + 10, player.y - 22 + 4 * cos(player.anim / 24), 6, crnd(6, 10))
         score += 1/30
         if score % 0.4 < 1 / 30 then
             sfx(17)
