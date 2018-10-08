@@ -248,6 +248,7 @@ function update_player()
         elseif grounded and not player.jumped then
             player.jump = 20
             player.jumped = true
+            -- todo sfx: quand on saute
         end
     elseif btn(3) then
         -- down button
@@ -267,37 +268,19 @@ function update_player()
         player.fall += 1
     end
 
-    player.grounded = grounded
-    player.ladder = ladder
-
-    foreach (player.particles, function(p)
-        p.x += rnd(2) - 1
-        p.y += rnd(1) - 0.5
-        p.age += 1
-        if p.age > 10 then
-            del(player.particles, p)
+    if grounded and old_x != player.x then
+        if last_move == nil or t() > last_move + 0.025 then
+            last_move = t()
+            -- todo sfx: petits bruits quand on marche
         end
-    end)
-
-    if old_x != player.x or old_y != player.y then
-        add(player.particles, { x = player.x + (rnd(8) - 4) - rnd(2) * (player.x - old_x),
-                                y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
-                                age = -rnd(5) })
     end
 
-    foreach (player.shots, function(s)
-        -- always advance tail
-        s.x0 += s.dx * 0.75
-        -- advance head if no wall
-        if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
-            if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
-                -- shot has finished
-                del(player.shots, s)
-            end
-        else
-            s.x1 += s.dx
+    if ladder and old_y != player.y then
+        if last_move == nil or t() > last_move + 0.025 then
+            last_move = t()
+            -- todo sfx: petits bruits quand on monte/descend l'echelle
         end
-    end)
+    end
 
     if btnp(4) then
         for i = 0,5 do
@@ -307,7 +290,45 @@ function update_player()
                                 dx = (rnd(2) + 3) * (player.dir and -1 or 1),
                                 color = rnd() > 0.5 and 9 or 10 })
         end
+        -- todo sfx: quand on tire
     end
+
+    player.grounded = grounded
+    player.ladder = ladder
+
+    foreach (player.particles, function(p)
+        p.x += rnd(2) - 1
+        p.y += rnd(1) - 0.5
+        p.age -= 1
+        if p.age < 10 then
+            del(player.particles, p)
+        end
+    end)
+
+    if old_x != player.x or old_y != player.y then
+        add(player.particles, { x = player.x + (rnd(8) - 4) - rnd(2) * (player.x - old_x),
+                                y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
+                                age = 20 + rnd(5), color = { 3, 11 }, r = { 0.5, 1, 0.5 } })
+    end
+
+    foreach (player.shots, function(s)
+        -- always advance tail
+        s.x0 += s.dx * 0.75
+        -- advance head if no wall
+        if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
+            if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
+                del(player.shots, s)
+            elseif wall(s.x1, s.y1) then
+                add(player.particles, { x = s.x1 + (rnd(4) - 2),
+                                        y = s.y1 + (rnd(4) - 2),
+                                        age = 20 + rnd(5), color = { 10, 9, 8 },
+                                        r = { 0.5, 1, 0.5 } })
+                -- todo sfx: quand un tir tape dans le mur
+            end
+        else
+            s.x1 += s.dx
+        end
+    end)
 end
 
 -- collectibles
@@ -424,7 +445,8 @@ function draw_player()
         line(s.x0, s.y0, s.x1, s.y1, s.color)
     end)
     foreach (player.particles, function(p)
-        circfill(p.x, p.y, p.age < 5 and 0.5 or 1, p.age < 5 and 11 or 3)
+        local t = p.age / 20
+        circfill(p.x, p.y, p.r[1 + flr(t * #p.r)], p.color[1 + flr(t * #p.color)])
     end)
     spr(player.spr, player.x - 8, player.y - 12, 2, 2, player.dir)
 end
