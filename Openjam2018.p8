@@ -220,6 +220,7 @@ function _draw()
         --draw_debug()
         draw_ui()
     elseif state == "pause" then
+        cls(0)
         draw_menu()
     end
 end 
@@ -674,8 +675,10 @@ end
 
 function update_pause()
     if fish > 0 then
-        score += 1
-        fish -= 1
+        local delta = max(1, flr(rnd(fish / 10)))
+        score += delta
+        fish -= delta
+        return
     end
 
     if btn(4) then
