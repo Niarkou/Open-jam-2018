@@ -28,6 +28,12 @@ function add_player(x, y)
     }
 end
 
+function add_smoke(n)
+    while #smoke < n do
+      add(smoke, {x = crnd(0, 128), y = crnd(133, 138), r = crnd(0, 20), col = ccrnd({5, 6})})
+    end
+end
+
 --
 -- useful functions
 --
@@ -35,6 +41,17 @@ end
 function jump()
     if btn(2) or btn(5) then
         return true end
+end
+
+-- cool random
+
+function crnd(min, max)
+  return min + rnd(max-min)
+end
+
+function ccrnd(tab)  -- takes a tab and choose randomly between the elements of the table
+  n = flr(crnd(1, #tab+1))
+  return tab[n]
 end
 
 -- cool print (outlined, scaled)
@@ -91,6 +108,8 @@ function _init()
     score = 0
     fish = 0
     hidefish = {}
+    smoke = {}
+    add_smoke(150)
     add_player(64, 150)
     collectibles()
     menu = {
@@ -116,6 +135,7 @@ function _update60()
     elseif state == "play" then
         update_player()
         collect_fish()
+        update_smoke()
     end
 end
 
@@ -125,6 +145,7 @@ function _draw()
         draw_menu()
     elseif state == "play" then
         draw_world()
+        draw_smoke()
         hidecollectible()
         draw_player()
         draw_debug()
@@ -211,8 +232,10 @@ function move_player_y(dy)
         if abs(dy) < 0.00625 then return end
     end
     player.y += dy
-    if player.y > 128 + 16 then
-        player.y -= 128 + 16
+    if state == "play" then
+        if player.y > 128 + 16 then
+            player.y -= 128 + 16
+        end
     end
 end
 
@@ -281,7 +304,9 @@ function update_player()
     if grounded and old_x != player.x then
         if last_move == nil or t() > last_move + 0.025 then
             last_move = t()
-            sfx(11)
+            if state == "play" then
+                sfx(11)
+            end
         end
     end
 
@@ -367,6 +392,21 @@ function collect_fish()
             del(fishes, f)
             sfx(15)
         end
+    end)
+end
+
+-- smoke
+
+function update_smoke()
+    foreach(smoke, function(circle)
+        if circle.r < 20 then
+            circle.r += 0.5
+        elseif circle.r >= 20 then
+            circle.x = crnd(0, 128)
+            circle.y = crnd(133, 138)
+            circle.r = crnd(0, 7)
+            circle.col = ccrnd({5, 6})
+        end 
     end)
 end
 
@@ -476,6 +516,26 @@ function hidecollectible()
     end
 end
 
+function draw_smoke()
+    foreach(smoke, function(circle)
+        if circle.col == 5 then
+            local p={0x0, 0x0, 0x5050, 0x5050, 0x5a5a, 0xfafa}
+            fillp(p[flr(circle.r * (#p - 1) / 20) + 1] + 0x.8)
+            circfill(circle.x, circle.y - 4, circle.r, circle.col)
+            fillp()
+        end 
+    end)
+
+    foreach(smoke, function(circle)
+        if circle.col == 6 then
+            local p={0x0, 0x0, 0x5050, 0x5050, 0x5a5a, 0xfafa}
+            fillp(p[flr(circle.r * (#p - 1) / 20) + 1] + 0x.8)
+            circfill(circle.x, circle.y + 2, circle.r, circle.col)
+            fillp()
+        end 
+    end)
+end
+
 function draw_debug()
     print("player.xy "..player.x.." "..player.y, 5, 118, 6)
     print("jump "..player.jump.."  fall "..player.fall, 5, 111, 6)
@@ -539,7 +599,7 @@ __map__
 0a0000000000000000000000060e000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0a00000000000000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0a00000000000000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0b08080808080500000608080808080c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0a00000000000000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
