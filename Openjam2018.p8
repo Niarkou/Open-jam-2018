@@ -120,7 +120,9 @@ function _init()
     state = "menu"
     score = 0
     fish = 0
-    lives = 0
+    lives = 5
+    livesmax = 10
+    lives_x1 = 76
     hidefish = {}
     hidemeat = {}
     smoke = {}
@@ -153,6 +155,7 @@ function _update60()
         collect_fish()
         collect_meat()
         update_smoke()
+        lives_handling()
     elseif state == "pause" then
         update_pause()
         update_player()    
@@ -460,6 +463,14 @@ function collect_meat()
         end
     end)
 end
+
+-- lives
+
+function lives_handling()
+    local l = 40 / livesmax
+    lives_x1 = 76 + 4 * l
+end
+
 -- smoke
 
 function update_smoke()
@@ -607,7 +618,7 @@ function draw_ui()
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
     palt(0, false)
-    orectfill(76, 4, 116, 8, 8, 0)
+    orectfill(76, 4, lives_x1, 8, 8, 0)
     palt(0, true)
 end
 
