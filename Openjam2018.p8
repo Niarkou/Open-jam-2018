@@ -42,6 +42,7 @@ function new_entity(x, y)
     return {
         x = x, y = y,
         lives = 10,
+        anim = rnd(10),
         hit = 0,
         climbspd = 0.5,
         dir = false,
@@ -320,6 +321,7 @@ end
 function update_player()
     update_entity(player, btn(0), btn(1), jump(), btn(3))
 
+    -- shooting!
     if btn(4) and state == "play" then
         if player.cooldown > 0 then
             player.cooldown -= 1
@@ -363,6 +365,10 @@ function update_tomatoes()
 end
 
 function update_entity(e, go_left, go_right, go_up, go_down)
+    -- update some variables
+    e.hit -= 1
+    e.anim += 1
+
     local old_x, old_y = e.x, e.y
 
     -- check x movement (easy)
@@ -444,9 +450,6 @@ function update_entity(e, go_left, go_right, go_up, go_down)
 
     e.grounded = grounded
     e.ladder = ladder
-
-    -- hit!
-    e.hit -= 1
 
     if old_x != e.x or old_y != e.y then
         add(particles, { x = e.x + (rnd(6) - 3) - rnd(2) * (e.x - old_x),
@@ -720,7 +723,9 @@ end
 
 function draw_entity(e)
     if e.hit > 0 then for i = 1,15 do pal(i, 6 + rnd(2)) end end
-    spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
+    --spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
+    local dy = 2 * cos(e.anim / 32)
+    sspr(e.spr % 16 * 8, flr(e.spr / 16) * 8, 16, 16, e.x - 8, e.y - 12 + dy, 16, 16 - dy, e.dir)
     pal()
 end
 
