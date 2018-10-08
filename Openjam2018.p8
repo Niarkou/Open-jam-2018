@@ -299,8 +299,8 @@ function update_player()
     foreach (player.particles, function(p)
         p.x += rnd(2) - 1
         p.y += rnd(1) - 0.5
-        p.age += 1
-        if p.age > 10 then
+        p.age -= 1
+        if p.age < 10 then
             del(player.particles, p)
         end
     end)
@@ -308,7 +308,7 @@ function update_player()
     if old_x != player.x or old_y != player.y then
         add(player.particles, { x = player.x + (rnd(8) - 4) - rnd(2) * (player.x - old_x),
                                 y = player.y + (rnd(8) - 6) - rnd(2) * (player.y - old_y),
-                                age = -rnd(5) })
+                                age = 20 + rnd(5), color = { 3, 11 }, r = { 0.5, 1, 0.5 } })
     end
 
     foreach (player.shots, function(s)
@@ -319,6 +319,10 @@ function update_player()
             if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
                 del(player.shots, s)
             elseif wall(s.x1, s.y1) then
+                add(player.particles, { x = s.x1 + (rnd(4) - 2),
+                                        y = s.y1 + (rnd(4) - 2),
+                                        age = 20 + rnd(5), color = { 10, 9, 8 },
+                                        r = { 0.5, 1, 0.5 } })
                 -- todo sfx: quand un tir tape dans le mur
             end
         else
@@ -441,7 +445,8 @@ function draw_player()
         line(s.x0, s.y0, s.x1, s.y1, s.color)
     end)
     foreach (player.particles, function(p)
-        circfill(p.x, p.y, p.age < 5 and 0.5 or 1, p.age < 5 and 11 or 3)
+        local t = p.age / 20
+        circfill(p.x, p.y, p.r[1 + flr(t * #p.r)], p.color[1 + flr(t * #p.color)])
     end)
     spr(player.spr, player.x - 8, player.y - 12, 2, 2, player.dir)
 end
