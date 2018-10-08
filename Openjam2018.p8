@@ -37,6 +37,7 @@ function new_tomato(x, y)
     local t = new_entity(x, y)
     t.spd = 0.5
     t.spr = 30
+    t.plan = { time = 0 }
     return t
 end
 
@@ -270,7 +271,14 @@ end
 
 function update_tomatoes()
     foreach(tomatoes, function(t)
-        update_entity(t, time() % 4 > 2, time() % 4 < 2, false, false)
+        local old_x, old_y = t.x, t.y
+        update_entity(t, t.plan[0], t.plan[1], t.plan[2], t.plan[3])
+        t.plan.time -= 1
+        if t.plan.time <= 0 or (old_x == t.x and old_y == t.y) then
+            t.plan = { time = crnd(80, 100) }
+            t.plan[flr(rnd(2))] = true -- go left or right
+            t.plan[2] = rnd() > 0.8 -- jump
+        end
     end)
 end
 
