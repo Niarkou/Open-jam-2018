@@ -32,6 +32,8 @@ end
 function new_entity(x, y)
     return {
         x = x, y = y,
+        lives = 20,
+        hit = 0,
         climbspd = 0.5,
         dir = false,
         grounded = false,
@@ -290,6 +292,22 @@ end
 
 function update_player()
     update_entity(player, btn(0), btn(1), jump(), btn(3))
+
+    if btn(4) and state == "play" then
+        if player.cooldown > 0 then
+            player.cooldown -= 1
+        elseif #player.shots < 10 and fish > 0 then
+            local x = player.x + rnd(8) - 4
+            local y = player.y + rnd(4) - 3
+            add(player.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
+                                exploded = false,
+                                dx = (rnd(2) + 3) * (player.dir and -1 or 1),
+                                color = rnd() > 0.7 and 9 or 10 })
+            sfx(12)
+            fish -= 1
+            player.cooldown = 2
+        end
+    end
 end
 
 function update_tomatoes()
@@ -301,6 +319,9 @@ function update_tomatoes()
             t.plan = { time = crnd(80, 100) }
             t.plan[flr(rnd(2))] = true -- go left or right
             t.plan[2] = rnd() > 0.8 -- jump
+        end
+        if t.lives <= 0 then
+            del(tomatoes, t)
         end
     end)
 end
@@ -385,23 +406,11 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         end
     end
 
-    if btn(4) and state == "play" then
-        if e.cooldown > 0 then
-            e.cooldown -= 1
-        elseif #e.shots < 10 and fish > 0 then
-            local x = e.x + rnd(8) - 4
-            local y = e.y + rnd(4) - 3
-            add(e.shots, { x0 = x, y0 = y, x1 = x, y1 = y,
-                           dx = (rnd(2) + 3) * (e.dir and -1 or 1),
-                           color = rnd() > 0.7 and 9 or 10 })
-            sfx(12)
-            fish -= 1
-            e.cooldown = 3
-        end
-    end
-
     e.grounded = grounded
     e.ladder = ladder
+
+    -- hit!
+    e.hit -= 1
 
     foreach (e.particles, function(p)
         p.x += rnd(2) - 1
@@ -421,21 +430,30 @@ function update_entity(e, go_left, go_right, go_up, go_down)
     foreach (e.shots, function(s)
         -- always advance tail
         s.x0 += s.dx * 0.75
-        -- advance head if no wall
-        if s.x1 > 128 or s.x1 < 0 or wall(s.x1, s.y1) then
-            if s.x0 > 128 or s.x0 < 0 or wall(s.x0, s.y0) then
-                del(e.shots, s)
-            elseif wall(s.x1, s.y1) then
-                add(e.particles, { x = s.x1 + (rnd(4) - 2),
-                                        y = s.y1 + (rnd(4) - 2),
-                                        age = 20 + rnd(5), color = { 10, 9, 8 },
-                                        r = { 0.5, 1, 0.5 } })
-                if state == "play" then
-                    sfx(14)
+        -- only advance head if not already exploded
+        if not s.exploded then
+            foreach(tomatoes, function(t)
+                if (abs(s.x1 - t.x) <= 4) and (abs(s.y1 - t.y) <= 4) then
+                    t.lives -= 1
+                    s.exploded = true
+                    t.hit = 5
                 end
+            end)
+            if wall(s.x1, s.y1) or wall(s.x1 + s.dx / 2, s.y1) then
+                s.exploded = true
             end
-        else
+            if s.exploded then
+                add(e.particles, { x = s.x1 + (rnd(4) - 2),
+                                   y = s.y1 + (rnd(4) - 2),
+                                   age = 20 + rnd(5), color = { 10, 9, 8 },
+                                   r = { 0.5, 1, 0.5 } })
+                sfx(14)
+            end
             s.x1 += s.dx
+        end
+        -- delete if lost in the void or finished exploding
+        if s.x0 > 128 or s.x0 < 0 or (s.x1 - s.x0) * s.dx <= 0 then
+            del(e.shots, s)
         end
     end)
 end
@@ -660,7 +678,9 @@ function draw_ui()
 end
 
 function draw_entity(e)
+    if (e.hit > 0) and (e.hit % 2 < 1) then for i = 1,15 do pal(i, 7) end end
     spr(e.spr, e.x - 8, e.y - 12, 2, 2, e.dir)
+    pal()
 end
 
 function draw_player()
