@@ -15,7 +15,9 @@ config = {
 function new_game()
     score = 0
     fish = 0
-    lives = 0
+    lives = 5
+    livesmax = 10
+    lives_x1 = 76
     hidefish = {}
     hidemeat = {}
     smoke = {}
@@ -164,6 +166,7 @@ function _update60()
         collect_fish()
         collect_meat()
         update_smoke()
+        lives_handling()
     elseif state == "pause" then
         update_pause()
         update_player()    
@@ -350,12 +353,7 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         -- up/jump button
         if ladder then
             move_y(e, -e.climbspd)
-            local ladder_x = flr(player.x / 8) * 8
-                if player.x < ladder_x + 4 then
-                    player.x += 0.5
-                elseif player.x > ladder_x + 4 then
-                    player.x -= 0.5
-                end
+            ladder_middle()
         elseif grounded and not e.jumped then
             e.jump = 20
             e.jumped = true
@@ -367,6 +365,7 @@ function update_entity(e, go_left, go_right, go_up, go_down)
         -- down button
         if ladder_below then
             move_y(e, e.climbspd)
+            ladder_middle()
         end
     end
 
@@ -486,6 +485,23 @@ function collect_meat()
         end
     end)
 end
+
+-- spam
+
+function spam(x,y)
+    local tile = mget(x / 8, y / 8)
+    if tile == 20 or tile == 21 or tile == 36 or tile == 37 then -- this is spam
+        return true
+    end  
+end
+
+-- lives
+
+function lives_handling()
+    local l = 40 / livesmax
+    lives_x1 = 76 + lives * l
+end
+
 -- smoke
 
 function update_smoke()
@@ -549,7 +565,14 @@ function ladder_area(x,y,w,h)
            ladder(x-w,y-1+h) or ladder(x-1+w,y-1+h)
 end
 
-
+function ladder_middle()
+    local ladder_x = flr(player.x / 8) * 8
+        if player.x < ladder_x + 4 then
+            player.x += 0.5
+        elseif player.x > ladder_x + 4 then
+            player.x -= 0.5
+        end
+end
 --
 -- pause
 --
@@ -633,8 +656,11 @@ function draw_ui()
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
     palt(0, false)
-    orectfill(76, 4, 116, 8, 8, 0)
+    orectfill(76, 4, lives_x1, 8, 8, 0)
     palt(0, true)
+    if spam(player.x, player.y) then
+        print("miom miom miom", player.x - 25, player.y - 22, 6)
+    end
 end
 
 function draw_entity(e)
