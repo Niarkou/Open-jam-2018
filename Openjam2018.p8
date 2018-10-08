@@ -12,11 +12,18 @@ config = {
     pause = {tl = "pause"},
 }
 
+g_lives_start = 5
+g_lives_max = 10
+g_points_kill = 10
+
+--
+-- constructors
+--
+
 function new_game()
     score = 0
     fish = 0
-    lives = 5
-    livesmax = 10
+    lives = g_lives_start
     lives_x1 = 76
     hidefish = {}
     hidemeat = {}
@@ -341,15 +348,16 @@ function update_tomatoes()
             t.plan[2] = rnd() > 0.8 -- jump
         end
         if t.lives <= 0 then
-            -- todo sfx tomato explosion
             del(tomatoes, t)
             for i = 0,10 do
                 add(particles, { x = t.x + rnd(8) - 4,
                                  y = t.y + rnd(8) - 8,
                                  age = 20 + rnd(5),
-                                 color = { 5, 2, 8 },
+                                 color = { 0, 5, 2, 8 },
                                  r = { 3, 5, 7 } })
             end
+            score += g_points_kill
+            -- todo sfx tomato explosion
         end
     end)
 end
@@ -516,7 +524,7 @@ function collect_meat()
     foreach(meat, function(m)
         if flr(player.x / 8) == m.cx and flr(player.y / 8) == m.cy then
             add(hidemeat, {cx = m.cx, cy = m.cy})
-            if lives < livesmax then
+            if lives < g_lives_max then
                 lives += 1
             end
             del(meat, m)
@@ -537,7 +545,7 @@ end
 -- lives
 
 function lives_handling()
-    local l = 40 / livesmax
+    local l = 40 / g_lives_max
     lives_x1 = 80 + lives * l
 end
 
