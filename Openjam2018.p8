@@ -45,7 +45,7 @@ end
 function new_entity(x, y)
     return {
         x = x, y = y,
-        anim = rnd(10),
+        anim = flr(rnd(10)),
         hit = 0,
         climbspd = 0.5,
         dir = false,
@@ -673,9 +673,10 @@ end
 
 function update_pause()
     if fish > 0 then
-        local delta = max(1, flr(rnd(fish / 10)))
-        score += delta
-        fish -= delta
+        if fish % 10 == 0 then
+            score += 1
+        end
+        fish -= 1
         return
     end
 
@@ -763,8 +764,8 @@ function draw_ui()
         cosprint("miom", px - 20, player.y - 22 + 4 * cos(player.anim / 20), 6, crnd(6, 10))
         cosprint("miom", px -  5, player.y - 22 + 3 * cos(player.anim / 16), 6, crnd(6, 10))
         cosprint("miom", px + 10, player.y - 22 + 4 * cos(player.anim / 24), 6, crnd(6, 10))
-        score += 1/30
-        if score % 0.4 < 1 / 30 then
+        if player.anim % 16 < 1 then
+            score += 1
             sfx(17)
         end
     end
