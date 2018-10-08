@@ -614,6 +614,9 @@ function draw_ui()
     csprint(tostr(score), 3, 9, 13)
     cosprint(tostr(fish), 19, 4, 6, 9)
     spr(25, 7, 3)
+    palt(0, false)
+    orectfill(76, 4, 116, 8, 8, 0)
+    palt(0, true)
 end
 
 function draw_entity(e)
