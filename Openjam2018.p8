@@ -468,6 +468,15 @@ function collect_meat()
     end)
 end
 
+-- spam
+
+function spam(x,y)
+    local tile = mget(x / 8, y / 8)
+    if tile == 20 or tile == 21 or tile == 36 or tile == 37 then -- this is spam
+        return true
+    end  
+end
+
 -- lives
 
 function lives_handling()
@@ -631,6 +640,9 @@ function draw_ui()
     palt(0, false)
     orectfill(76, 4, lives_x1, 8, 8, 0)
     palt(0, true)
+    if spam(player.x, player.y) then
+        print("miom miom miom", player.x - 25, player.y - 22, 6)
+    end
 end
 
 function draw_entity(e)
