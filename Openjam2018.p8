@@ -15,8 +15,8 @@ config = {
 g_lives_player_start = 5
 g_lives_player_max = 10
 g_lives_tomato = 10
-g_fish_ammo = 20
-g_points_kill = 10
+g_fish_ammo = 25
+g_points_kill = 5
 g_spawn_cooldown = 10
 
 --
@@ -34,10 +34,10 @@ function new_game()
     smoke = {}
     fishes, meat = {}, {}
     add_smoke(150)
-    player = new_player(16, 80)
+    player = new_player(12, 40)
     tomatoes = {
-        new_tomato(48, -20),
-        new_tomato(96, -10),
+        new_tomato(24, 112),
+        new_tomato(112, 72),
     }
     spawn_cooldown = g_spawn_cooldown,
     collectibles(fishes, 25)
