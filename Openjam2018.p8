@@ -15,7 +15,9 @@ config = {
 g_lives_player_start = 5
 g_lives_player_max = 10
 g_lives_tomato = 10
+g_fish_ammo = 20
 g_points_kill = 10
+g_spawn_cooldown = 10
 
 --
 -- constructors
@@ -34,12 +36,12 @@ function new_game()
     add_smoke(150)
     player = new_player(16, 80)
     tomatoes = {
-        new_tomato(24, 150),
-        new_tomato(96, 150),
+        new_tomato(48, -20),
+        new_tomato(96, -10),
     }
+    spawn_cooldown = g_spawn_cooldown,
     collectibles(fishes, 25)
     collectibles(meat, 24)
-
 end
 
 function new_entity(x, y)
@@ -217,8 +219,8 @@ function _draw()
         draw_particles()
         draw_tomatoes()
         draw_player()
-        --draw_debug()
         draw_ui()
+        --draw_debug()
     elseif state == "pause" then
         cls(0)
         draw_menu()
@@ -369,6 +371,12 @@ function update_player()
 end
 
 function update_tomatoes()
+    spawn_cooldown -= 1 / 60
+    if spawn_cooldown < 0 then
+        add(tomatoes, new_tomato(64, -20))
+        spawn_cooldown = g_spawn_cooldown
+    end
+
     foreach(tomatoes, function(t)
         local old_x, old_y = t.x, t.y
         update_entity(t, t.plan[0], t.plan[1], t.plan[2], t.plan[3])
@@ -413,12 +421,10 @@ function update_entity(e, go_left, go_right, go_up, go_down)
     -- check x movement (easy)
     if go_left then
         e.dir = true
-        move_x(e, -0.5 * e.spd)
-        move_x(e, -0.5 * e.spd)
+        move_x(e, -e.spd)
     elseif go_right then
         e.dir = false
-        move_x(e, 0.5 * e.spd)
-        move_x(e, 0.5 * e.spd)
+        move_x(e, e.spd)
     end
 
     -- check for ladders and ground below
@@ -548,7 +554,7 @@ function collect_fish()
     foreach(fishes, function(f)
         if flr(player.x / 8) == f.cx and flr(player.y / 8) == f.cy then
             add(hidefish, {cx = f.cx, cy = f.cy, date = time()})
-            fish += 200
+            fish += g_fish_ammo
             del(fishes, f)
             sfx(15)
         end
@@ -672,12 +678,13 @@ end
 
 function ladder_middle()
     local ladder_x = flr(player.x / 8) * 8
-        if player.x < ladder_x + 4 then
-            player.x += 0.5
-        elseif player.x > ladder_x + 4 then
-            player.x -= 0.5
-        end
+    if player.x < ladder_x + 4 then
+        move_x(player, 1)
+    elseif player.x > ladder_x + 4 then
+        move_x(player, -1)
+    end
 end
+
 --
 -- pause
 --
@@ -882,8 +889,8 @@ c666000004000040000033bbbb113000111a1a11aaa1a1a107cccccccccc6d600007777000000000
 04ffff4000000000000003bbbbbb30001a1a1a1a11a1a1a107cccccccccc6c60000c000000444400000003bb1b13000056667777777777600028883888188882
 040000400000000000003bb3bbbb300011a11a1a11a1a1a107cccccccccc6d60000c000004979740000003bbbbb3000056777777777777600288888888888882
 04ffff40000000000003bb3bb3b30000111111111111111107cccccccccc6c6000cc100047aaaa7400003bbbbbb33000567777777777776002e8888888888882
-0400004000000000003bbbbbbbb33000111199a9a999111107cccccccccc6d600c7cd100494a4a9400033bbb11130000567777777777776002e8888888888882
-0000000004ffff40003bbb3bbb300000199a9a9a9a9a999107cccccccccc6c60c7cccd1049aaaa740003bb3bbbb30000567777777777776002ee888888888820
+0400004000000000003bbbbbbbb33000111199a9a999111107cccccccccc6d600c7cd100494a4a9400033bbb11130000567777777777776002e8888888887882
+0000000004ffff40003bbb3bbb300000199a9a9a9a9a999107cccccccccc6c60c7cccd1049aaaa740003bb3bbbb30000567777777777776002ee88888888e820
 0000000004000040003bb3bbbb30000011a9a8888889a91107c6666666666d60c7cccd1049a4aa94003bb3bb3b3000005677777777777760002eee8888882200
 0000000004ffff400003bbbbb3300000199444eefef44991007cdcdcdcdcd6000c7cd10004999740003bbbbbbb300000556666666666660000022eeee8220000
 00000000040000400000333330000000119a9444e9899911000766666666600000dd100000444400000333333300000065555550550500060000022222000000
